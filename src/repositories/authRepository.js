@@ -94,13 +94,13 @@ exports.VerifyCodeEmail = async (userData) => {
 }
 
 exports.getUserDataRegister = async (userData) => {
-  if (!userData.Username) {
+  if (!userData.username) {
     return {
       completed: false,
       message: "UserName cannot be left blank"
     }
   }
-  if (!userData.Role) {
+  if (!userData.role) {
     return {
       completed: false,
       message: "Please choose your role"
@@ -113,14 +113,17 @@ exports.getUserDataRegister = async (userData) => {
       message: "Family not found for the provided email"
     };
   }
+  const saltRounds = 10;
+  const hashedPassword = await bcrypt.hash(userData.password, saltRounds);
 
   const newUser = new User({
-    Username: userData.Username,
-    Role: userData.Role,
+    username: userData.username,
+    password: hashedPassword,
+    role: userData.role,
     Family_id: family._id,
-    Avatar: userData.Avatar,
-    DateOfBirth: userData.DateOfBirth,
-    Gender: userData.Gender,
+    avatar: userData.avatar,
+    dateOfBirth: userData.dateOfBirth,
+    gender: userData.gender,
   });
 
   try {
