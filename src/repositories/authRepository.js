@@ -31,7 +31,9 @@ exports.signUp = async (userData) => {
     return {
       completed: true,
       message: 'We have successfully sent the new verification code to your email',
-      userId: existingEmail.id
+      userId: existingEmail.id,
+      abc:"12321"
+
     };
 
   }
@@ -60,7 +62,8 @@ exports.signUp = async (userData) => {
     return {
       completed: true,
       message: 'We have successfully sent the verification code to your email',
-      userId: existingEmail.id
+      userId: existingEmail.id,
+      abc:"12321"
     };
   }
 };
