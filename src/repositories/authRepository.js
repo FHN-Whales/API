@@ -26,13 +26,13 @@ exports.signUp = async (userData) => {
     existingEmail.status = false;
 
     await existingEmail.save();
+    console.log(existingEmail);
 
     await sendVerifyCode(userData.email, verifyCode);
     return {
       completed: true,
       message: 'We have successfully sent the new verification code to your email',
       userId: existingEmail.id,
-      abc:"123"
     };
 
   }
@@ -57,11 +57,14 @@ exports.signUp = async (userData) => {
     status: false
   });
   await newUser.save();
+  const getNewUser = await Family.findOne({
+    email: newUser.email
+  });
   if (newUser) {
     return {
       completed: true,
       message: 'We have successfully sent the verification code to your email',
-      abc:"123111111"
+      userID: getNewUser.id
     };
   }
 };
