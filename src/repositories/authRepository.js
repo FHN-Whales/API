@@ -4,7 +4,8 @@ const crypto = require("crypto")
 const nodemailer = require("nodemailer")
 const bcrypt = require("bcrypt")
 const moment = require('moment');
-
+const dotenv = require('dotenv');
+dotenv.configDotenv()
 exports.signUp = async (userData) => {
   if (!userData.email) {
     return {
@@ -61,8 +62,8 @@ exports.signUp = async (userData) => {
   }
   const verifyCode = Math.floor(100000 + Math.random() * 900000);
   const expiresVerifyCode = Date.now();
-  await sendVerifyCode(userData.email, verifyCode);
 
+  const out = await sendVerifyCode(userData.email, verifyCode);
   const saltRounds = 10;
   const hashedPassword = await bcrypt.hash(userData.password, saltRounds);
 
@@ -209,12 +210,21 @@ exports.SignInFamily = async (userData) => {
   }
 }
 
-
+console.log(process.env)
+console.log('user', process.env.EMAIL_USERNAME,
+  'pass', process.env.EMAIL_PASSWORD)
+// const transporter = nodemailer.createTransport({
+//   service: 'gmail',
+//   auth: {
+//     user: process.env.EMAIL_USERNAME,
+//     pass: process.env.EMAIL_PASSWORD
+//   }
+// });
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: 'it.trungdang@gmail.com',
-    pass: 'xogw hqqu xhln jxvu'
+    user: process.env.EMAIL_USERNAME,
+    pass: process.env.EMAIL_PASSWORD
   }
 });
 
@@ -222,7 +232,7 @@ const sendVerifyCode = async (recipientEmail, code) => {
   try {
     // Tạo nội dung email
     const mailOptions = {
-      from: 'it.trungdang@gmail.com',
+      from: process.env.EMAIL_USERNAME,
       to: recipientEmail,
       subject: 'Register account - Verification Code',
       html: `<div style="font-size: 16px;">
@@ -239,6 +249,8 @@ const sendVerifyCode = async (recipientEmail, code) => {
 
     // Send email without using req and res parameters
     const info = await transporter.sendMail(mailOptions);
+    console.log("info: ", info);
+    return info;
   } catch (error) {
     console.error(error);
     throw error;
