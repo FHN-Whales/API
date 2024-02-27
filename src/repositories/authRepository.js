@@ -111,7 +111,7 @@ exports.VerifyCodeEmail = async (userData) => {
     await family.updateOne({ status: true });
     return {
       completed: true,
-      message: "Code validation successful",
+      message: "Code validation successful, please Login",
     }
   }
 }
