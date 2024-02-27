@@ -53,7 +53,7 @@ exports.signUp = async (userData) => {
     };
 
   }
-  if (userData.password != userData.comfirmPassword) {
+  if (userData.password != userData.confirmPassword) {
     return {
       completed: false,
       message: "Passwords are not the same"
