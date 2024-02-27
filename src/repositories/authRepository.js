@@ -81,7 +81,7 @@ exports.signUp = async (userData) => {
     return {
       completed: true,
       message: 'We have successfully sent the verification code to your email',
-      userID: getNewUser.id
+      userId: getNewUser.id
     };
   }
 };
