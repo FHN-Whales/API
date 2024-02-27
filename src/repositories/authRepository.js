@@ -87,17 +87,18 @@ exports.signUp = async (userData) => {
 };
 
 exports.VerifyCodeEmail = async (userData) => {
-  const user = await Family.findOne({
-    _id: userData.userID
+  const family = await Family.findOne({
+    _id: userData.userId
   });
-  if (user.verifyCode != userData.code) {
+  console.log(userData.userId);
+  if (family.verifyCode != userData.code) {
     return {
       completed: false,
       message: "Verification code is wrong, please re-enter"
     }
   }
   const currentTime = moment();
-  const verifyCodeExpires = moment(user.verifyCodeExpires);
+  const verifyCodeExpires = moment(family.verifyCodeExpires);
   const diffSeconds = currentTime.diff(verifyCodeExpires, 'seconds');
 
   if (diffSeconds > 600) {
@@ -106,12 +107,11 @@ exports.VerifyCodeEmail = async (userData) => {
       message: "Verification code has expired, please click <Reset code>"
     };
   }
-  if (user.verifyCode == userData.code & diffSeconds < 600) {
-    await Family.findOneAndUpdate({ email: userData.email }, { status: true });
+  if (family.verifyCode == userData.code && diffSeconds < 600) {
+    await family.updateOne({ status: true });
     return {
       completed: true,
       message: "Code validation successful",
-
     }
   }
 }
@@ -130,8 +130,8 @@ exports.getUserDataRegister = async (userData) => {
     }
   }
   const family = await Family.findOne({
-     email: userData.email 
-    });
+    email: userData.email
+  });
   if (!family) {
     return {
       completed: false,
