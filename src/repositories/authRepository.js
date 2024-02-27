@@ -6,6 +6,25 @@ const bcrypt = require("bcrypt")
 const moment = require('moment');
 
 exports.signUp = async (userData) => {
+  if (!userData.email) {
+    return {
+      completed: false,
+      message: 'Email cannot be left blank'
+    }
+  }
+  if (!userData.password) {
+    return {
+      completed: false,
+      message: 'Password cannot be left blank'
+    }
+  }
+
+  if (!userData.email && !userData.password) {
+    return {
+      completed: false,
+      message: 'Email and password cannot be left blank'
+    }
+  }
   const existingEmail = await Family.findOne({
     email: userData.email
   });
@@ -26,8 +45,6 @@ exports.signUp = async (userData) => {
     existingEmail.status = false;
 
     await existingEmail.save();
-    console.log(existingEmail);
-
     await sendVerifyCode(userData.email, verifyCode);
     return {
       completed: true,
@@ -71,9 +88,8 @@ exports.signUp = async (userData) => {
 
 exports.VerifyCodeEmail = async (userData) => {
   const user = await Family.findOne({
-    email: userData.email
+    _id: userData.userID
   });
-
   if (user.verifyCode != userData.code) {
     return {
       completed: false,
@@ -94,7 +110,8 @@ exports.VerifyCodeEmail = async (userData) => {
     await Family.findOneAndUpdate({ email: userData.email }, { status: true });
     return {
       completed: true,
-      message: "Code validation successful"
+      message: "Code validation successful",
+
     }
   }
 }
@@ -112,7 +129,9 @@ exports.getUserDataRegister = async (userData) => {
       message: "Please choose your role"
     }
   }
-  const family = await Family.findOne({ email: userData.email });
+  const family = await Family.findOne({
+     email: userData.email 
+    });
   if (!family) {
     return {
       completed: false,
