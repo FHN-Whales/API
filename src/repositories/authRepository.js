@@ -59,7 +59,7 @@ exports.signUp = async (userData) => {
       message: "Passwords are not the same"
     }
   }
-  const verifyCode = Math.floor(Math.random() * 1000000);
+  const verifyCode = Math.floor(100000 + Math.random() * 900000);
   const expiresVerifyCode = Date.now();
   await sendVerifyCode(userData.email, verifyCode);
 
