@@ -6,28 +6,29 @@ const bcrypt = require("bcrypt")
 const moment = require('moment');
 const dotenv = require('dotenv');
 dotenv.configDotenv()
-exports.signUp = async (userData) => {
-  if (!userData.email) {
+
+exports.signUp = async (familyData) => {
+  if (!familyData.email) {
     return {
       completed: false,
       message: 'Email cannot be left blank'
     }
   }
-  if (!userData.password) {
+  if (!familyData.password) {
     return {
       completed: false,
       message: 'Password cannot be left blank'
     }
   }
 
-  if (!userData.email && !userData.password) {
+  if (!familyData.email && !familyData.password) {
     return {
       completed: false,
       message: 'Email and password cannot be left blank'
     }
   }
   const existingEmail = await Family.findOne({
-    email: userData.email
+    email: familyData.email
   });
   if (existingEmail) {
     if (existingEmail.status == true) {
@@ -36,25 +37,40 @@ exports.signUp = async (userData) => {
         message: 'Email is already registered'
       }
     }
-    const verifyCode = Math.floor(Math.random() * 1000000);
+
+    const verifyCode = Math.floor(100000 + Math.random() * 900000);
     const expiresVerifyCode = Date.now();
     const saltRounds = 10;
-    const hashedPassword = await bcrypt.hash(userData.password, saltRounds);
-    existingEmail.password = hashedPassword;
-    existingEmail.verifyCode = verifyCode;
-    existingEmail.verifyCodeExpires = expiresVerifyCode;
-    existingEmail.status = false;
+    const hashedPassword = await bcrypt.hash(familyData.password, saltRounds);
 
-    await existingEmail.save();
-    await sendVerifyCode(userData.email, verifyCode);
-    return {
-      completed: true,
-      message: 'We have successfully sent the new verification code to your email',
-      userId: existingEmail.id,
+    await sendVerifyCode(familyData.email, verifyCode);
+
+    const filterEmail = familyData.email;
+
+    const update = {
+      password: hashedPassword,
+      verifyCode: verifyCode,
+      verifyCodeExpires: expiresVerifyCode,
+      status: false
     };
+    const options = { new: true, upsert: true };
+
+    await Family.findOneAndUpdate({ email: filterEmail }, update, options);
+
+    const getNewFamily = await Family.findOne({
+      email: filterEmail
+    });
+
+    if (getNewFamily) {
+      return {
+        completed: true,
+        message: 'We have successfully sent the verification code to your email',
+        familyId: getNewFamily.id
+      };
+    }
 
   }
-  if (userData.password != userData.confirmPassword) {
+  if (familyData.password != familyData.confirmPassword) {
     return {
       completed: false,
       message: "Passwords are not the same"
@@ -62,37 +78,40 @@ exports.signUp = async (userData) => {
   }
   const verifyCode = Math.floor(100000 + Math.random() * 900000);
   const expiresVerifyCode = Date.now();
-
-  const out = await sendVerifyCode(userData.email, verifyCode);
   const saltRounds = 10;
-  const hashedPassword = await bcrypt.hash(userData.password, saltRounds);
+  const hashedPassword = await bcrypt.hash(familyData.password, saltRounds);
 
-  const newUser = new Family({
-    email: userData.email,
+  await sendVerifyCode(familyData.email, verifyCode);
+
+  const newFamily = new Family({
+    email: familyData.email,
     password: hashedPassword,
     verifyCode: verifyCode,
     verifyCodeExpires: expiresVerifyCode,
     status: false
   });
-  await newUser.save();
-  const getNewUser = await Family.findOne({
-    email: newUser.email
+
+  await newFamily.save();
+
+  const getNewFamily = await Family.findOne({
+    email: newFamily.email
   });
-  if (newUser) {
+
+  if (getNewFamily) {
     return {
       completed: true,
       message: 'We have successfully sent the verification code to your email',
-      userId: getNewUser.id
+      familyId: getNewFamily.id
     };
   }
 };
 
-exports.VerifyCodeEmail = async (userData) => {
+exports.VerifyCodeEmail = async (familyData) => {
   const family = await Family.findOne({
-    _id: userData.userId
+    _id: familyData.familyId
   });
-  console.log(userData.userId);
-  if (family.verifyCode != userData.code) {
+
+  if (family.verifyCode != familyData.code) {
     return {
       completed: false,
       message: "Verification code is wrong, please re-enter"
@@ -108,7 +127,7 @@ exports.VerifyCodeEmail = async (userData) => {
       message: "Verification code has expired, please click <Reset code>"
     };
   }
-  if (family.verifyCode == userData.code && diffSeconds < 600) {
+  if (family.verifyCode == familyData.code && diffSeconds < 600) {
     await family.updateOne({ status: true });
     return {
       completed: true,
@@ -117,44 +136,54 @@ exports.VerifyCodeEmail = async (userData) => {
   }
 }
 
-exports.getUserDataRegister = async (userData) => {
-  if (!userData.username) {
+exports.createNewUser = async (data) => {
+  if (!data.username) {
     return {
       completed: false,
       message: "UserName cannot be left blank"
     }
   }
-  if (!userData.role) {
+  if (!data.role) {
     return {
       completed: false,
       message: "Please choose your role"
     }
   }
+
+  if (!data.password) {
+    return {
+      completed: false,
+      message: "Password cannot be left blank"
+    }
+  }
+
   const family = await Family.findOne({
-    email: userData.email
+    _id: data.familyId
   });
+
   if (!family) {
     return {
       completed: false,
       message: "Family not found for the provided email"
     };
   }
+
   const saltRounds = 10;
-  const hashedPassword = await bcrypt.hash(userData.password, saltRounds);
+  const hashedPassword = await bcrypt.hash(data.password, saltRounds);
 
   const newUser = new User({
-    username: userData.username,
+    username: data.username,
     password: hashedPassword,
-    role: userData.role,
-    Family_id: family._id,
-    avatar: userData.avatar,
-    dateOfBirth: userData.dateOfBirth,
-    gender: userData.gender,
+    role: data.role,
+    family_id: family._id,
+    avatar: data.avatar,
+    dateOfBirth: data.dateOfBirth,
+    gender: data.gender,
   });
 
   try {
     const savedUser = await newUser.save();
-    console.log(savedUser);
+
     return {
       completed: true,
       message: "User has been successfully registered"
@@ -167,37 +196,43 @@ exports.getUserDataRegister = async (userData) => {
   }
 }
 
-exports.SignInFamily = async (userData) => {
-  if (!userData.email) {
+
+
+exports.SignInFamily = async (familyData) => {
+  if (!familyData.email) {
     return {
       completed: false,
       message: "Email cannot be left blank"
     }
   }
-  if (!userData.password) {
+  if (!familyData.password) {
     return {
       completed: false,
       message: "Password cannot be left blank"
     }
   }
-  const user = await Family.findOne({
-    email: userData.email
+
+  const family = await Family.findOne({
+    email: familyData.email
   });
-  if (!user) {
+  console.log(family);
+  if (!family) {
     return {
       completed: false,
       message: "Your email is not registered"
     }
   }
-  const passwordMatch = await bcrypt.compare(userData.password, user.password);
+
+  const passwordMatch = await bcrypt.compare(familyData.password, family.password);
+
   if (!passwordMatch) {
     return {
       completed: false,
       message: "Your Password is wrong, please re-enter"
     };
   }
-  if (user) {
-    if (user.status == false) {
+  if (family) {
+    if (family.status == false) {
       return {
         completed: false,
         message: "Your email is not registered"
@@ -205,21 +240,80 @@ exports.SignInFamily = async (userData) => {
     }
     return {
       completed: true,
-      message: "Sign in successfully"
+      message: "Sign in successfully",
+      familyId: family._id
     }
   }
 }
 
-console.log(process.env)
-console.log('user', process.env.EMAIL_USERNAME,
-  'pass', process.env.EMAIL_PASSWORD)
-// const transporter = nodemailer.createTransport({
-//   service: 'gmail',
-//   auth: {
-//     user: process.env.EMAIL_USERNAME,
-//     pass: process.env.EMAIL_PASSWORD
-//   }
-// });
+exports.SignInRoleUser = async (Data) => {
+  const family_id = Data.family_id
+  const user_role = Data.role
+  const user_password = Data.password
+  console.log(family_id);
+  console.log(user_role);
+  console.log(user_password);
+
+  if (!family_id) {
+    return {
+      completed: false,
+      message: 'Missing familyId'
+    }
+  }
+  if (!user_role) {
+    return {
+      completed: false,
+      message: "Please select your role!"
+    }
+  }
+  if (!user_password) {
+    return {
+      completed: false,
+      message: "Please type your password role!"
+    }
+  }
+  try {
+
+    const users = await User.find({ family_id: family_id, role: user_role });
+    console.log(users);
+    if (!users || users.length == 0) {
+      return {
+        completed: false,
+        message: "Not registered for this role, please register before Sign in"
+      };
+    }
+    let foundUser = null;
+    for (const user of users) {
+      const passwordMatch = await bcrypt.compare(user_password, user.password);
+      if (passwordMatch) {
+        foundUser = user;
+        break;
+      }
+    }
+
+    if (foundUser) {
+      return {
+        completed: true,
+        userId: foundUser._id,
+        familyId: family_id,
+        message: "Login successful"
+      };
+    }
+    if (!foundUser) {
+      return {
+        completed: false,
+        message: "Your Password role is wrong, please re-enter"
+      };
+    }
+  } catch (error) {
+    console.error("Error:", error);
+    return {
+      completed: false,
+      message: "An error occurred while processing your request"
+    };
+  }
+}
+
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
@@ -256,26 +350,4 @@ const sendVerifyCode = async (recipientEmail, code) => {
     throw error;
   }
 };
-
-// const sendCreatePasswordEmail = async (userEmail, userName, token) => {
-//   try {
-//     // Tạo nội dung email
-//     const mailOptions = {
-//       from: 'it.trungdang@gmail.com',
-//       to: userEmail,
-//       subject: 'Create your password',
-//       text: `Bạn đang đăng ký tài khoản với username: .\n
-//                 Vui lòng nhấp vào liên kết sau để tạo mật khẩu:\n
-//                 http://localhost:3000/CreatePw/email=${userEmail}/username=${userName}/tokenCreatePW=${token}\n
-//                 Liên kết này sẽ hết hạn sau 1 giờ.`,
-//     };
-
-//     // Send email without using req and res parameters
-//     const info = await transporter.sendMail(mailOptions);
-//   } catch (error) {
-//     console.error(error);
-//     throw error;
-//   }
-// };
-
 

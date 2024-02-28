@@ -9,7 +9,7 @@ const userSchema = new mongoose.Schema({
     role: { type: String, require: true },
     dateOfBirth: { type: Date, require: false, default: null },
     gender: { type: String, require: false, default: null },
-    Family_id: { type: Schema.Types.ObjectId, ref: 'Family' },
+    family_id: { type: Schema.Types.ObjectId, ref: 'Family' },
 });
 
 const User = mongoose.model("Users", userSchema);
