@@ -196,8 +196,6 @@ exports.createNewUser = async (data) => {
   }
 }
 
-
-
 exports.SignInFamily = async (familyData) => {
   if (!familyData.email) {
     return {
@@ -247,7 +245,7 @@ exports.SignInFamily = async (familyData) => {
 }
 
 exports.SignInRoleUser = async (Data) => {
-  const family_id = Data.family_id
+  const family_id = Data.familyId
   const user_role = Data.role
   const user_password = Data.password
   console.log(family_id);
@@ -313,6 +311,8 @@ exports.SignInRoleUser = async (Data) => {
     };
   }
 }
+
+
 
 const transporter = nodemailer.createTransport({
   service: 'gmail',
