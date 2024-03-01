@@ -175,7 +175,7 @@ exports.createNewUser = async (data) => {
     username: data.username,
     password: hashedPassword,
     role: data.role,
-    family_id: family._id,
+    familyId: family._id,
     avatar: data.avatar,
     dateOfBirth: data.dateOfBirth,
     gender: data.gender,
@@ -245,14 +245,11 @@ exports.SignInFamily = async (familyData) => {
 }
 
 exports.SignInRoleUser = async (Data) => {
-  const family_id = Data.familyId
+  const familyId = Data.familyId
   const user_role = Data.role
   const user_password = Data.password
-  console.log(family_id);
-  console.log(user_role);
-  console.log(user_password);
 
-  if (!family_id) {
+  if (!familyId) {
     return {
       completed: false,
       message: 'Missing familyId'
@@ -271,9 +268,12 @@ exports.SignInRoleUser = async (Data) => {
     }
   }
   try {
+    console.log(user_role);
+    console.log(familyId);
 
-    const users = await User.find({ family_id: family_id, role: user_role });
+    const users = await User.find({ familyId: familyId, role: user_role });
     console.log(users);
+    
     if (!users || users.length == 0) {
       return {
         completed: false,
@@ -294,7 +294,7 @@ exports.SignInRoleUser = async (Data) => {
       return {
         completed: true,
         userId: foundUser._id,
-        familyId: family_id,
+        familyId: familyId,
         message: "Login successful",
       };
     }

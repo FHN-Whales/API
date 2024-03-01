@@ -1,7 +1,7 @@
 const User = require('../models/userModel');
 const Family = require("../models/familyModel")
+const Reminder = require("../models/ReminderModel")
 const TreatmentReminder = require("../models/TreatmentReminderModel")
-const TimeSlot = require("../models/TimeSlotModel")
 const crypto = require("crypto")
 const nodemailer = require("nodemailer")
 const bcrypt = require("bcrypt")
@@ -70,9 +70,9 @@ exports.CreateTreatmentReminders = async (data) => {
       };
     }
 
-    const newTreatmentReminder = await TreatmentReminder.create({ userId, startDate, endDate, frequency });
+    const newReminder = await Reminder.create({ userId, startDate, endDate, frequency });
 
-    const remindTreatmentRemindererId = newTreatmentReminder._id;
+    const newReminderId = newReminder._id;
 
     // Đảm bảo cả hai mảng có cùng độ dài
     if (timeOfDay.length !== treatmentTime.length) {
@@ -81,25 +81,111 @@ exports.CreateTreatmentReminders = async (data) => {
         message: "Invalid data: timeOfDay and treatmentTime arrays must have the same length.",
       };
     }
+    const newTreatmentReminderSchedules = [];
+
     for (let i = 0; i < timeOfDay.length; i++) {
       const timeOfDayItem = timeOfDay[i];
       const treatmentTimeItem = treatmentTime[i];
-      const newTimeSlotSchedule = await TimeSlot.create({
-        remindTreatmentRemindererId,
+      const newTreatmentReminderSchedule = await TreatmentReminder.create({
+        reminderId: newReminderId,
         timeOfDay: timeOfDayItem,
         treatmentTime: treatmentTimeItem,
         medications
       });
+      newTreatmentReminderSchedules.push(newTreatmentReminderSchedule);
     }
     return {
       completed: true,
       message: "Data has been successfully added.",
+      newTreatmentReminderSchedules
     };
   } catch (error) {
     console.error('Error when adding data:', error);
     return {
       completed: false,
       message: "Failed to register user: " + error.message
+    };
+  }
+}
+
+
+exports.updateTreatmentReminders = async (data) => {
+  try {
+    if (!data || Object.keys(data).length === 0) {
+      return {
+        completed: false,
+        message: "Data is not provided."
+      };
+    }
+    const { treatmentReminderId, timeOfDay, treatmentTime, medications } = data;
+    const existingTreatmentReminder = await TreatmentReminder.findById(treatmentReminderId);
+    if (!existingTreatmentReminder) {
+      return {
+        completed: false,
+        message: "TreatmentReminder not found."
+      };
+    }
+
+    if (!timeOfDay && !treatmentTime && (!medications || medications.length === 0)) {
+      return {
+        completed: false,
+        message: "No new data to update."
+      };
+    }
+
+    const updateTreatmentReminder = await TreatmentReminder.updateMany({
+      _id: treatmentReminderId,
+    },
+      {
+        $set: {
+          timeOfDay: timeOfDay,
+          treatmentTime: treatmentTime,
+          medications
+        }
+      });
+    if (updateTreatmentReminder) {
+      return {
+        completed: true,
+        message: "Data has been successfully updated.",
+        updateTreatmentReminder
+      };
+    }
+  } catch (error) {
+    console.error('Error when updating data:', error);
+    return {
+      completed: false,
+      message: "Failed to register user: " + error.message
+    };
+  }
+}
+
+
+exports.deleteTreatmentReminder = async (treatmentReminderId) => {
+  try {
+    if (!treatmentReminderId) {
+      return {
+        completed: false,
+        message: "TreatmentReminderId is not provided."
+      };
+    }
+    const existingTreatmentReminder = await TreatmentReminder.findById(treatmentReminderId);
+    if (!existingTreatmentReminder) {
+      return {
+        completed: false,
+        message: "TreatmentReminder not found."
+      };
+    }
+    await TreatmentReminder.deleteOne({ _id: treatmentReminderId });
+
+    return {
+      completed: true,
+      message: "TreatmentReminder has been successfully deleted.",
+    };
+  } catch (error) {
+    console.error('Error when deleting data:', error);
+    return {
+      completed: false,
+      message: "Failed to delete TreatmentReminder: " + error.message
     };
   }
 }
