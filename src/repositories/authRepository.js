@@ -290,11 +290,12 @@ exports.SignInRoleUser = async (Data) => {
     }
 
     if (foundUser) {
+      console.log(foundUser);
       return {
         completed: true,
         userId: foundUser._id,
         familyId: family_id,
-        message: "Login successful"
+        message: "Login successful",
       };
     }
     if (!foundUser) {
