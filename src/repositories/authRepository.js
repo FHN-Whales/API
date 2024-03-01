@@ -271,7 +271,7 @@ exports.SignInRoleUser = async (Data) => {
     console.log(user_role);
     console.log(familyId);
 
-    const users = await User.find({ familyId: familyId, role: user_role });
+    const users = await User.find({ familyId: familyId, role: { $regex: new RegExp(user_role, 'i') } });
     console.log(users);
     
     if (!users || users.length == 0) {
