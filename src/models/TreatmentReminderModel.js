@@ -1,15 +1,17 @@
 const mongoose = require('mongoose');
+const { Schema } = mongoose;
 
-const Schema = mongoose.Schema;
+const treatmentReminderSchema = new mongoose.Schema({
 
-const TreatmentReminderSchema = new mongoose.Schema({
-  userId: { type: String, required: true },
-  startDate: { type: Date, required: true },
-  endDate: { type: Date, required: true },
-  frequency: { type: Number, required: true },
+  timeOfDay: String,
+  treatmentTime: String,
+  medications: [{
+    medicationName: String,
+    dosage: String
+  }],
+  reminderId: { type: Schema.Types.ObjectId, ref: 'Reminders' },
 });
 
-
-const TreatmentReminder = mongoose.model("TreatmentReminder", TreatmentReminderSchema);
+const TreatmentReminder= mongoose.model('TreatmentReminders', treatmentReminderSchema);
 
 module.exports = TreatmentReminder;
