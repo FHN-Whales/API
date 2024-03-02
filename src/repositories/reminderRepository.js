@@ -74,6 +74,8 @@ exports.CreateTreatmentReminders = async (data) => {
 
     const newReminderId = newReminder._id;
 
+    const createdReminder = await Reminder.findById(newReminder._id);
+
     // Đảm bảo cả hai mảng có cùng độ dài
     if (timeOfDay.length !== treatmentTime.length) {
       return {
@@ -82,7 +84,6 @@ exports.CreateTreatmentReminders = async (data) => {
       };
     }
     const newTreatmentReminderSchedules = [];
-
     for (let i = 0; i < timeOfDay.length; i++) {
       const timeOfDayItem = timeOfDay[i];
       const treatmentTimeItem = treatmentTime[i];
@@ -94,11 +95,14 @@ exports.CreateTreatmentReminders = async (data) => {
       });
       newTreatmentReminderSchedules.push(newTreatmentReminderSchedule);
     }
+    const newdataTreatmentReminder = await TreatmentReminder.find({ reminderId: newReminderId });
     return {
       completed: true,
       message: "Data has been successfully added.",
-      newTreatmentReminderSchedules
+      dataRemimder: createdReminder,
+      dataTreatmentReminder: newdataTreatmentReminder 
     };
+
   } catch (error) {
     console.error('Error when adding data:', error);
     return {
@@ -144,10 +148,11 @@ exports.updateTreatmentReminders = async (data) => {
         }
       });
     if (updateTreatmentReminder) {
+      const updatedData = await TreatmentReminder.findById(treatmentReminderId);
       return {
         completed: true,
         message: "Data has been successfully updated.",
-        updateTreatmentReminder
+        data: updatedData
       };
     }
   } catch (error) {
@@ -161,6 +166,7 @@ exports.updateTreatmentReminders = async (data) => {
 
 
 exports.deleteTreatmentReminder = async (treatmentReminderId) => {
+  
   try {
     if (!treatmentReminderId) {
       return {
