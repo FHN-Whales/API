@@ -4,10 +4,31 @@ const crypto = require("crypto")
 const nodemailer = require("nodemailer")
 const bcrypt = require("bcrypt")
 const moment = require('moment');
+const dotenv = require('dotenv');
+dotenv.configDotenv()
 
-exports.signUp = async (userData) => {
+exports.signUp = async (familyData) => {
+  if (!familyData.email) {
+    return {
+      completed: false,
+      message: 'Email cannot be left blank'
+    }
+  }
+  if (!familyData.password) {
+    return {
+      completed: false,
+      message: 'Password cannot be left blank'
+    }
+  }
+
+  if (!familyData.email && !familyData.password) {
+    return {
+      completed: false,
+      message: 'Email and password cannot be left blank'
+    }
+  }
   const existingEmail = await Family.findOne({
-    email: userData.email
+    email: familyData.email
   });
   if (existingEmail) {
     if (existingEmail.status == true) {
@@ -16,66 +37,88 @@ exports.signUp = async (userData) => {
         message: 'Email is already registered'
       }
     }
-    const verifyCode = Math.floor(Math.random() * 1000000);
+
+    const verifyCode = Math.floor(100000 + Math.random() * 900000);
     const expiresVerifyCode = Date.now();
     const saltRounds = 10;
-    const hashedPassword = await bcrypt.hash(userData.password, saltRounds);
-    existingEmail.password = hashedPassword;
-    existingEmail.verifyCode = verifyCode;
-    existingEmail.verifyCodeExpires = expiresVerifyCode;
-    existingEmail.status = false;
+    const hashedPassword = await bcrypt.hash(familyData.password, saltRounds);
 
-    await existingEmail.save();
+    await sendVerifyCode(familyData.email, verifyCode);
 
-    await sendVerifyCode(userData.email, verifyCode);
-    return {
-      completed: true,
-      message: 'We have successfully sent the new verification code to your email'
+    const filterEmail = familyData.email;
+
+    const update = {
+      password: hashedPassword,
+      verifyCode: verifyCode,
+      verifyCodeExpires: expiresVerifyCode,
+      status: false
     };
+    const options = { new: true, upsert: true };
+
+    await Family.findOneAndUpdate({ email: filterEmail }, update, options);
+
+    const getNewFamily = await Family.findOne({
+      email: filterEmail
+    });
+
+    if (getNewFamily) {
+      return {
+        completed: true,
+        message: 'We have successfully sent the verification code to your email',
+        familyId: getNewFamily.id
+      };
+    }
 
   }
-  if (userData.password != userData.comfirmPassword) {
+  if (familyData.password != familyData.confirmPassword) {
     return {
       completed: false,
       message: "Passwords are not the same"
     }
   }
-  const verifyCode = Math.floor(Math.random() * 1000000);
+  const verifyCode = Math.floor(100000 + Math.random() * 900000);
   const expiresVerifyCode = Date.now();
-  await sendVerifyCode(userData.email, verifyCode);
-
   const saltRounds = 10;
-  const hashedPassword = await bcrypt.hash(userData.password, saltRounds);
+  const hashedPassword = await bcrypt.hash(familyData.password, saltRounds);
 
-  const newUser = new Family({
-    email: userData.email,
+  await sendVerifyCode(familyData.email, verifyCode);
+
+  const newFamily = new Family({
+    email: familyData.email,
     password: hashedPassword,
     verifyCode: verifyCode,
     verifyCodeExpires: expiresVerifyCode,
     status: false
   });
-  await newUser.save();
-  if (newUser) {
+
+  await newFamily.save();
+
+  const getNewFamily = await Family.findOne({
+    email: newFamily.email
+  });
+
+  if (getNewFamily) {
     return {
       completed: true,
-      message: 'We have successfully sent the verification code to your email'
+      message: 'We have successfully sent the verification code to your email',
+      familyId: getNewFamily.id
     };
   }
 };
 
-exports.VerifyCodeEmail = async (userData) => {
-  const user = await Family.findOne({
-    email: userData.email
+exports.VerifyCodeEmail = async (familyData) => {
+  const family = await Family.findOne({
+    _id: familyData.familyId
   });
 
-  if (user.verifyCode != userData.code) {
+  if (family.verifyCode != familyData.code) {
     return {
       completed: false,
       message: "Verification code is wrong, please re-enter"
     }
   }
   const currentTime = moment();
-  const verifyCodeExpires = moment(user.verifyCodeExpires);
+  const verifyCodeExpires = moment(family.verifyCodeExpires);
   const diffSeconds = currentTime.diff(verifyCodeExpires, 'seconds');
 
   if (diffSeconds > 600) {
@@ -84,29 +127,40 @@ exports.VerifyCodeEmail = async (userData) => {
       message: "Verification code has expired, please click <Reset code>"
     };
   }
-  if (user.verifyCode == userData.code & diffSeconds < 600) {
-    await Family.findOneAndUpdate({ email: userData.email }, { status: true });
+  if (family.verifyCode == familyData.code && diffSeconds < 600) {
+    await family.updateOne({ status: true });
     return {
       completed: true,
-      message: "Code validation successful"
+      message: "Code validation successful, please Login",
     }
   }
 }
 
-exports.getUserDataRegister = async (userData) => {
-  if (!userData.Username) {
+exports.createNewUser = async (data) => {
+  if (!data.username) {
     return {
       completed: false,
       message: "UserName cannot be left blank"
     }
   }
-  if (!userData.Role) {
+  if (!data.role) {
     return {
       completed: false,
       message: "Please choose your role"
     }
   }
-  const family = await Family.findOne({ email: userData.email });
+
+  if (!data.password) {
+    return {
+      completed: false,
+      message: "Password cannot be left blank"
+    }
+  }
+
+  const family = await Family.findOne({
+    _id: data.familyId
+  });
+
   if (!family) {
     return {
       completed: false,
@@ -114,18 +168,22 @@ exports.getUserDataRegister = async (userData) => {
     };
   }
 
+  const saltRounds = 10;
+  const hashedPassword = await bcrypt.hash(data.password, saltRounds);
+
   const newUser = new User({
-    Username: userData.Username,
-    Role: userData.Role,
-    Family_id: family._id,
-    Avatar: userData.Avatar,
-    DateOfBirth: userData.DateOfBirth,
-    Gender: userData.Gender,
+    username: data.username,
+    password: hashedPassword,
+    role: data.role,
+    familyId: family._id,
+    avatar: data.avatar,
+    dateOfBirth: data.dateOfBirth,
+    gender: data.gender,
   });
 
   try {
     const savedUser = await newUser.save();
-    console.log(savedUser);
+
     return {
       completed: true,
       message: "User has been successfully registered"
@@ -138,37 +196,41 @@ exports.getUserDataRegister = async (userData) => {
   }
 }
 
-exports.SignInFamily = async (userData) => {
-  if (!userData.email) {
+exports.SignInFamily = async (familyData) => {
+  if (!familyData.email) {
     return {
       completed: false,
       message: "Email cannot be left blank"
     }
   }
-  if (!userData.password) {
+  if (!familyData.password) {
     return {
       completed: false,
       message: "Password cannot be left blank"
     }
   }
-  const user = await Family.findOne({
-    email: userData.email
+
+  const family = await Family.findOne({
+    email: familyData.email
   });
-  if (!user) {
+  console.log(family);
+  if (!family) {
     return {
       completed: false,
       message: "Your email is not registered"
     }
   }
-  const passwordMatch = await bcrypt.compare(userData.password, user.password);
+
+  const passwordMatch = await bcrypt.compare(familyData.password, family.password);
+
   if (!passwordMatch) {
     return {
       completed: false,
       message: "Your Password is wrong, please re-enter"
     };
   }
-  if (user) {
-    if (user.status == false) {
+  if (family) {
+    if (family.status == false) {
       return {
         completed: false,
         message: "Your email is not registered"
@@ -176,17 +238,88 @@ exports.SignInFamily = async (userData) => {
     }
     return {
       completed: true,
-      message: "Sign in successfully"
+      message: "Sign in successfully",
+      familyId: family._id
     }
   }
 }
+
+exports.SignInRoleUser = async (Data) => {
+  const familyId = Data.familyId
+  const user_role = Data.role
+  const user_password = Data.password
+
+  if (!familyId) {
+    return {
+      completed: false,
+      message: 'Missing familyId'
+    }
+  }
+  if (!user_role) {
+    return {
+      completed: false,
+      message: "Please select your role!"
+    }
+  }
+  if (!user_password) {
+    return {
+      completed: false,
+      message: "Please type your password role!"
+    }
+  }
+  try {
+    console.log(user_role);
+    console.log(familyId);
+
+    const users = await User.find({ familyId: familyId, role: { $regex: new RegExp(user_role, 'i') } });
+    console.log(users);
+    
+    if (!users || users.length == 0) {
+      return {
+        completed: false,
+        message: "Not registered for this role, please register before Sign in"
+      };
+    }
+    let foundUser = null;
+    for (const user of users) {
+      const passwordMatch = await bcrypt.compare(user_password, user.password);
+      if (passwordMatch) {
+        foundUser = user;
+        break;
+      }
+    }
+
+    if (foundUser) {
+      console.log(foundUser);
+      return {
+        completed: true,
+        userId: foundUser._id,
+        familyId: familyId,
+        message: "Login successful",
+      };
+    }
+    if (!foundUser) {
+      return {
+        completed: false,
+        message: "Your Password role is wrong, please re-enter"
+      };
+    }
+  } catch (error) {
+    console.error("Error:", error);
+    return {
+      completed: false,
+      message: "An error occurred while processing your request"
+    };
+  }
+}
+
 
 
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: 'it.trungdang@gmail.com',
-    pass: 'xogw hqqu xhln jxvu'
+    user: process.env.EMAIL_USERNAME,
+    pass: process.env.EMAIL_PASSWORD
   }
 });
 
@@ -194,7 +327,7 @@ const sendVerifyCode = async (recipientEmail, code) => {
   try {
     // Tạo nội dung email
     const mailOptions = {
-      from: 'it.trungdang@gmail.com',
+      from: process.env.EMAIL_USERNAME,
       to: recipientEmail,
       subject: 'Register account - Verification Code',
       html: `<div style="font-size: 16px;">
@@ -211,31 +344,11 @@ const sendVerifyCode = async (recipientEmail, code) => {
 
     // Send email without using req and res parameters
     const info = await transporter.sendMail(mailOptions);
+    console.log("info: ", info);
+    return info;
   } catch (error) {
     console.error(error);
     throw error;
   }
 };
-
-// const sendCreatePasswordEmail = async (userEmail, userName, token) => {
-//   try {
-//     // Tạo nội dung email
-//     const mailOptions = {
-//       from: 'it.trungdang@gmail.com',
-//       to: userEmail,
-//       subject: 'Create your password',
-//       text: `Bạn đang đăng ký tài khoản với username: .\n
-//                 Vui lòng nhấp vào liên kết sau để tạo mật khẩu:\n
-//                 http://localhost:3000/CreatePw/email=${userEmail}/username=${userName}/tokenCreatePW=${token}\n
-//                 Liên kết này sẽ hết hạn sau 1 giờ.`,
-//     };
-
-//     // Send email without using req and res parameters
-//     const info = await transporter.sendMail(mailOptions);
-//   } catch (error) {
-//     console.error(error);
-//     throw error;
-//   }
-// };
-
 

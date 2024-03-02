@@ -13,16 +13,17 @@ exports.verifyCode = async (req, res) => {
   try {
     const verifyCode = await authRepository.VerifyCodeEmail(req.body);
     return res.json(verifyCode)
-  } catch {
+  } catch (error) {
+    console.log('error', error);
     return res.status(500).json({ error: error.message });
   }
 }
 
-exports.getUserDataRegister = async (req, res) => {
+exports.createNewUser = async (req, res) => {
   try {
-    const getUserDataRegister = await authRepository.getUserDataRegister(req.body)
-    return res.json(getUserDataRegister)
-  } catch {
+    const createNewUser = await authRepository.createNewUser(req.body)
+    return res.json(createNewUser)
+  } catch  (error){
     return res.status(500).json({ error: error.message });
   }
 }
@@ -31,7 +32,15 @@ exports.SignInFamily = async(req, res) =>{
   try{
     const SignInFamily = await authRepository.SignInFamily(req.body);
     return res.json(SignInFamily)
-  }catch{
+  }catch (error){
+    return res.status(500).json({ error: error.message });
+  }
+}
+exports.SignInRoleUser = async(req, res) =>{
+  try{
+    const SignInRoleUser = await authRepository.SignInRoleUser(req.body);
+    return res.json(SignInRoleUser)
+  }catch (error){
     return res.status(500).json({ error: error.message });
   }
 }
