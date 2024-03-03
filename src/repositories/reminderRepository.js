@@ -100,7 +100,7 @@ exports.CreateTreatmentReminders = async (data) => {
       completed: true,
       message: "Data has been successfully added.",
       dataRemimder: createdReminder,
-      dataTreatmentReminder: newdataTreatmentReminder 
+      dataTreatmentReminder: newdataTreatmentReminder
     };
 
   } catch (error) {
@@ -166,7 +166,7 @@ exports.updateTreatmentReminders = async (data) => {
 
 
 exports.deleteTreatmentReminder = async (treatmentReminderId) => {
-  
+
   try {
     if (!treatmentReminderId) {
       return {
@@ -192,6 +192,62 @@ exports.deleteTreatmentReminder = async (treatmentReminderId) => {
     return {
       completed: false,
       message: "Failed to delete TreatmentReminder: " + error.message
+    };
+  }
+}
+
+exports.getAllTreatmentReminders = async () => {
+  try {
+    const allTreatmentReminders = await TreatmentReminder.find();
+
+    if (allTreatmentReminders && allTreatmentReminders.length != 0) {
+      return {
+        completed: true,
+        message: "All treatment reminders have been successfully retrieved.",
+        data: allTreatmentReminders
+      };
+    } else if(allTreatmentReminders.length == 0) {
+      return {
+        completed: false,
+        message: "All members are healthy so there are no calendar reminders"
+      };
+    }
+  } catch (error) {
+    console.error('Error when updating data:', error);
+    return {
+      completed: false,
+      message: "Failed to register user: " + error.message
+    };
+  }
+}
+
+exports.getTreatmentRemindersByUserId = async (userId) => {
+  try {
+    const reminders = await Reminder.find({ userId });
+
+    const reminderIds = reminders.map(reminder => reminder._id);
+
+    const treatmentReminders = await TreatmentReminder.find({ reminderId: { $in: reminderIds } });
+    console.log();
+    if (treatmentReminders && treatmentReminders.length != 0) {
+      return {
+        completed: true,
+        message: "Treatment reminders have been successfully retrieved.",
+        data: treatmentReminders
+      };
+    } else if (treatmentReminders.length == 0) {
+      return {
+        completed: false,
+        message: "There are no calendar reminders"
+      };
+    }
+
+
+  } catch (error) {
+    console.error('Error getting treatment reminders:', error);
+    return {
+      completed: false,
+      message: "Failed to get treatment reminders."
     };
   }
 }
