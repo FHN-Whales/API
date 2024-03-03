@@ -1,5 +1,7 @@
 const dotenv = require('dotenv');
+const firebase = require('firebase-admin')
 dotenv.configDotenv()
+
 
 module.exports = {
     firebaseConfig: { 
@@ -12,3 +14,5 @@ module.exports = {
         measurementId: process.env.MEASUREMENT_ID
     }
 };
+
+module.exports
