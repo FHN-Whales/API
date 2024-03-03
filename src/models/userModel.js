@@ -9,6 +9,7 @@ const userSchema = new mongoose.Schema({
     role: { type: String, require: true },
     dateOfBirth: { type: Date, require: false, default: null },
     gender: { type: String, require: false, default: null },
+    deviceToken: { type: String, require: false, default: null },
     familyId: { type: Schema.Types.ObjectId, ref: 'Family' },
 });
 
