@@ -229,6 +229,8 @@ exports.SignInFamily = async (familyData) => {
       message: "Your Password is wrong, please re-enter"
     };
   }
+
+
   if (family) {
     if (family.status == false) {
       return {
@@ -236,6 +238,7 @@ exports.SignInFamily = async (familyData) => {
         message: "Your email is not registered"
       }
     }
+
     return {
       completed: true,
       message: "Sign in successfully",
@@ -273,7 +276,7 @@ exports.SignInRoleUser = async (Data) => {
 
     const users = await User.find({ familyId: familyId, role: { $regex: new RegExp(user_role, 'i') } });
     console.log(users);
-    
+
     if (!users || users.length == 0) {
       return {
         completed: false,
@@ -288,6 +291,14 @@ exports.SignInRoleUser = async (Data) => {
         break;
       }
     }
+    const userId = foundUser._id;
+    const deviceToken = Data.deviceToken; 
+  
+    const result = await saveDeviceTokenToUser(userId, deviceToken);
+
+    console.log("userId,,,",userId);
+    console.log("deviceToken,,,",deviceToken);
+
 
     if (foundUser) {
       console.log(foundUser);
@@ -296,6 +307,7 @@ exports.SignInRoleUser = async (Data) => {
         userId: foundUser._id,
         familyId: familyId,
         message: "Login successful",
+        deviceToken: deviceToken
       };
     }
     if (!foundUser) {
@@ -351,4 +363,29 @@ const sendVerifyCode = async (recipientEmail, code) => {
     throw error;
   }
 };
+
+async function saveDeviceTokenToUser(userId, deviceToken) {
+  try {
+    const user = await User.findByIdAndUpdate(userId, { deviceToken }, { new: true });
+
+    if (user) {
+      return {
+        completed: true,
+        message: "Device token has been successfully saved to user record.",
+      };
+    } else {
+      return {
+        completed: false,
+        message: "User not found."
+      };
+    }
+  } catch (error) {
+    console.error('Error saving device token to user record:', error);
+    return {
+      completed: false,
+      message: "Failed to save device token to user record."
+    };
+  }
+}
+
 

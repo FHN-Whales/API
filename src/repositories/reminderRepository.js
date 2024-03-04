@@ -74,6 +74,8 @@ exports.CreateTreatmentReminders = async (data) => {
 
     const newReminderId = newReminder._id;
 
+    const createdReminder = await Reminder.findById(newReminder._id);
+
     // Đảm bảo cả hai mảng có cùng độ dài
     if (timeOfDay.length !== treatmentTime.length) {
       return {
@@ -82,7 +84,6 @@ exports.CreateTreatmentReminders = async (data) => {
       };
     }
     const newTreatmentReminderSchedules = [];
-
     for (let i = 0; i < timeOfDay.length; i++) {
       const timeOfDayItem = timeOfDay[i];
       const treatmentTimeItem = treatmentTime[i];
@@ -94,11 +95,14 @@ exports.CreateTreatmentReminders = async (data) => {
       });
       newTreatmentReminderSchedules.push(newTreatmentReminderSchedule);
     }
+    const newdataTreatmentReminder = await TreatmentReminder.find({ reminderId: newReminderId });
     return {
       completed: true,
       message: "Data has been successfully added.",
-      newTreatmentReminderSchedules
+      dataRemimder: createdReminder,
+      dataTreatmentReminder: newdataTreatmentReminder
     };
+
   } catch (error) {
     console.error('Error when adding data:', error);
     return {
@@ -144,10 +148,11 @@ exports.updateTreatmentReminders = async (data) => {
         }
       });
     if (updateTreatmentReminder) {
+      const updatedData = await TreatmentReminder.findById(treatmentReminderId);
       return {
         completed: true,
         message: "Data has been successfully updated.",
-        updateTreatmentReminder
+        data: updatedData
       };
     }
   } catch (error) {
@@ -161,6 +166,7 @@ exports.updateTreatmentReminders = async (data) => {
 
 
 exports.deleteTreatmentReminder = async (treatmentReminderId) => {
+
   try {
     if (!treatmentReminderId) {
       return {
@@ -186,6 +192,62 @@ exports.deleteTreatmentReminder = async (treatmentReminderId) => {
     return {
       completed: false,
       message: "Failed to delete TreatmentReminder: " + error.message
+    };
+  }
+}
+
+exports.getAllTreatmentReminders = async () => {
+  try {
+    const allTreatmentReminders = await TreatmentReminder.find();
+
+    if (allTreatmentReminders && allTreatmentReminders.length != 0) {
+      return {
+        completed: true,
+        message: "All treatment reminders have been successfully retrieved.",
+        data: allTreatmentReminders
+      };
+    } else if(allTreatmentReminders.length == 0) {
+      return {
+        completed: false,
+        message: "All members are healthy so there are no calendar reminders"
+      };
+    }
+  } catch (error) {
+    console.error('Error when updating data:', error);
+    return {
+      completed: false,
+      message: "Failed to register user: " + error.message
+    };
+  }
+}
+
+exports.getTreatmentRemindersByUserId = async (userId) => {
+  try {
+    const reminders = await Reminder.find({ userId });
+
+    const reminderIds = reminders.map(reminder => reminder._id);
+
+    const treatmentReminders = await TreatmentReminder.find({ reminderId: { $in: reminderIds } });
+    console.log();
+    if (treatmentReminders && treatmentReminders.length != 0) {
+      return {
+        completed: true,
+        message: "Treatment reminders have been successfully retrieved.",
+        data: treatmentReminders
+      };
+    } else if (treatmentReminders.length == 0) {
+      return {
+        completed: false,
+        message: "There are no calendar reminders"
+      };
+    }
+
+
+  } catch (error) {
+    console.error('Error getting treatment reminders:', error);
+    return {
+      completed: false,
+      message: "Failed to get treatment reminders."
     };
   }
 }
