@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "816263060726",
+    "project_id": "test-340ab",
+    "storage_bucket": "test-340ab.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:816263060726:android:73af703f17bf857a1220d7",
+        "android_client_info": {
+          "package_name": "testfhn.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBYeYjOL-Lk_OZQuJXOdTUrLKQJoP0TLG8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,18 +1,15 @@
 const dotenv = require('dotenv');
 const firebase = require('firebase-admin')
+const serviceAccount = require('./serviceAccountKeys.json')
 dotenv.configDotenv()
 
 
-module.exports = {
-    firebaseConfig: { 
-        apiKey: process.env.APIKEY,
-        authDomain: process.env.AUTH_DOMAIN,
-        projectId: process.env.PROJECT_ID,
-        storageBucket: process.env.STORAGE_BUCKET,
-        messagingSenderId: process.env.MESSAGING_SENDER_ID,
-        appId: process.env.APP_ID,
-        measurementId: process.env.MEASUREMENT_ID
-    }
-};
+firebase.initializeApp({
+    credential: firebase.credential.cert(serviceAccount),
+});
 
-module.exports
+
+
+module.exports = { firebase }
+
+
