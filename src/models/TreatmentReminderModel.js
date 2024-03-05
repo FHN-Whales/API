@@ -4,15 +4,8 @@ const { Schema } = mongoose;
 const treatmentReminderSchema = new mongoose.Schema({
 
   timeOfDay: String,
-  treatmentTime: {
-    type: String,
-    validate: {
-      validator: function (v) {
-        return /^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$/.test(v);
-      },
-      message: props => `${props.value} không phải là định dạng thời gian hợp lệ!`
-    }
-  }, medications: [{
+  treatmentTime: String,
+  medications: [{
     medicationName: String,
     dosage: Number
   }],

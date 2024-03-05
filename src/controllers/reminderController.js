@@ -52,4 +52,14 @@ exports.getTreatmentRemindersByUserId = async (req, res) => {
   }
 }
 
+exports.getAllTreatmentRemindersByYearMonthDay = async (req, res) => {
+  try {
+    const getTreatmentReminderByUserId = await reminderRepository.getAllTreatmentRemindersByYearMonthDay(req.body);
+    return res.json(getTreatmentReminderByUserId)
+  } catch (error) {
+    console.log('error', error);
+    return res.status(500).json({ error: error.message });
+  }
+}
+
 
