@@ -2,6 +2,7 @@ const User = require('../models/userModel');
 const Family = require("../models/familyModel")
 const Reminder = require("../models/ReminderModel")
 const TreatmentReminder = require("../models/TreatmentReminderModel")
+const Users = require('../models/userModel')
 const crypto = require("crypto")
 const nodemailer = require("nodemailer")
 const bcrypt = require("bcrypt")
@@ -18,6 +19,7 @@ exports.CreateTreatmentReminders = async (data) => {
         message: "Data is not provided."
       };
     }
+    const validTimeRegex = /^(?:2[0-3]|[01][0-9]):[0-5][0-9]$/;
 
     const { userId, startDate, endDate, frequency, timeOfDay, treatmentTime, medications } = data;
 
@@ -27,7 +29,14 @@ exports.CreateTreatmentReminders = async (data) => {
         message: "UserId is missing."
       };
     }
-
+    for (let time of treatmentTime) {
+      if (!validTimeRegex.test(time)) {
+        return {
+          completed: false,
+          message: "Invalid format for treatmentTime. Please use the format hh:mm in 24-hour notation."
+        };
+      }
+    }
     if (!startDate) {
       return {
         completed: false,
@@ -206,7 +215,7 @@ exports.getAllTreatmentReminders = async () => {
         message: "All treatment reminders have been successfully retrieved.",
         data: allTreatmentReminders
       };
-    } else if(allTreatmentReminders.length == 0) {
+    } else if (allTreatmentReminders.length == 0) {
       return {
         completed: false,
         message: "All members are healthy so there are no calendar reminders"
@@ -228,7 +237,6 @@ exports.getTreatmentRemindersByUserId = async (userId) => {
     const reminderIds = reminders.map(reminder => reminder._id);
 
     const treatmentReminders = await TreatmentReminder.find({ reminderId: { $in: reminderIds } });
-    console.log();
     if (treatmentReminders && treatmentReminders.length != 0) {
       return {
         completed: true,
@@ -251,3 +259,104 @@ exports.getTreatmentRemindersByUserId = async (userId) => {
     };
   }
 }
+
+
+exports.getAllTreatmentRemindersByYearMonthDay = async (data) => {
+  const { year, month, day, userId } = data;
+  if (!userId) {
+    return {
+      completed: false,
+      message: "UserId is missing."
+    };
+  }
+  if (!year || !month || !day) {
+    return {
+      completed: false,
+      message: "Year, month, and day cannot be left blank."
+    };
+  }
+  try {
+    const users = await User.find({ _id: userId });
+    if (!users.length) {
+      return {
+        completed: false,
+        message: "User not found."
+      }
+    };
+
+    const reminders = await Reminder.find({
+      startDate: { $lte: new Date(year, month - 1, day + 1) },
+      endDate: { $gte: new Date(year, month - 1, day) }
+    });
+
+
+    if (users[0].role === "Dad") {
+      const getAllreminders = await Reminder.find();
+      if (getAllreminders.length == 0) {
+        return {
+          completed: true,
+          message: "Hiện tại các thành viên gia đình bạn không có lịch",
+        };
+      }
+      const userReminders = await getAllReminder(reminders);
+      return {
+        completed: true,
+        message: "Success",
+        data: userReminders
+      };
+    }
+    if (users[0].role !== "Dad") {
+      const checkUserInReminder = await Reminder.find({ userId: userId });
+      if (checkUserInReminder.length == 0) {
+        return {
+          completed: true,
+          message: "Hiện tại bạn không có lịch cần nhắc nhở"
+        }
+      };
+      const userReminders = await getReminderFollowUserId(reminders, userId);
+      return {
+        completed: true,
+        message: "Success",
+        data: userReminders
+      };
+    }
+    return {
+      completed: false,
+      message: "User is not authorized."
+    };
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+getAllReminder = async (reminders) => {
+  const UserReminder = [];
+  for (let reminder of reminders) {
+    const user = await User.findById(reminder.userId);
+    const username = user.username;
+    const treatmentReminders = await TreatmentReminder.find({ reminderId: reminder._id }, { reminderId: 0, __v: 0 });
+
+    UserReminder.push({ username: username, treatmentReminders: treatmentReminders });
+  }
+  return UserReminder
+}
+
+getReminderFollowUserId = async (reminders, userId) => {
+  const remindersWithMatchingUserId = [];
+  for (let reminder of reminders) {
+    if (reminder.userId.equals(userId)) {
+      const user = await User.findById(userId);
+      const username = user.username;
+      console.log(username);
+      const treatmentReminders = await TreatmentReminder.find({ reminderId: reminder._id }, { reminderId: 0, __v: 0 });
+
+      remindersWithMatchingUserId.push({ username: username, treatmentReminders: treatmentReminders });
+    }
+  }
+
+
+  return remindersWithMatchingUserId;
+}
+
+
+
