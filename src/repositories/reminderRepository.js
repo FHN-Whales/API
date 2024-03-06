@@ -233,8 +233,6 @@ exports.deleteTreatmentReminder = async (treatmentReminderId) => {
 exports.getAllTreatmentRemindersByYearMonthDay = async (data) => {
   const { date, userId } = data;
   const [year, month, day] = date.split('/');
-
-  console.log(userId);
   if (!userId) {
     return {
       completed: false,
@@ -243,13 +241,13 @@ exports.getAllTreatmentRemindersByYearMonthDay = async (data) => {
   }
   if (!year || !month || !day) {
     return {
-      completed: false,
+      completed: true,
       message: "Year, month, and day cannot be left blank."
     };
   }
   try {
     const users = await User.find({ _id: userId });
-    if (!users.length) {
+    if (users.length == 0) {
       return {
         completed: false,
         message: "User not found."
@@ -263,13 +261,14 @@ exports.getAllTreatmentRemindersByYearMonthDay = async (data) => {
 
 
     if (users[0].role === "Dad") {
-      const getAllreminders = await Reminder.find();
+      const getAllreminders = await Reminder.find({ userId: userId });
       if (getAllreminders.length == 0) {
         return {
           completed: true,
           message: "Hiện tại các thành viên gia đình bạn không có lịch",
         };
       }
+
       const userReminders = await getAllReminders(reminders);
       return {
         completed: true,
@@ -327,10 +326,16 @@ exports.getTreatmentRemindersByUserId = async (userId) => {
         };
       }
       const userReminders = await getAllReminders(reminders);
+      if (userReminders.length == 0) {
+        return {
+          completed: true,
+          message: "Success",
+
+        };
+      }
       return {
         completed: true,
-        message: "Success",
-        data: userReminders
+        message: "Hiện tại các thành viên gia đình bạn không có lịch1"
       };
 
     }
@@ -364,9 +369,11 @@ exports.getTreatmentRemindersByUserId = async (userId) => {
 
 
 const getAllReminders = async (getAllreminders) => {
+  console.log(getAllreminders);
   const UserReminder = [];
   for (let reminder of getAllreminders) {
-    const user = await User.findById(reminder.userId);
+    console.log(reminder.userId);
+    const user = await User.findById({ _id: reminder.userId });
     const username = user.username;
     const treatmentReminders = await TreatmentReminder.find({ reminderId: reminder._id }, { reminderId: 0, __v: 0 });
 
@@ -386,8 +393,6 @@ const getReminderFollowUserId = async (reminders, userId) => {
       remindersWithMatchingUserId.push({ username: username, treatmentReminders: treatmentReminders });
     }
   }
-
-
   return remindersWithMatchingUserId;
 }
 
