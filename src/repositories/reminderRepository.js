@@ -205,64 +205,34 @@ exports.deleteTreatmentReminder = async (treatmentReminderId) => {
   }
 }
 
-exports.getAllTreatmentReminders = async () => {
-  try {
-    const allTreatmentReminders = await TreatmentReminder.find();
+// exports.getAllTreatmentReminders = async () => {
+//   try {
+//     const allTreatmentReminders = await TreatmentReminder.find();
 
-    if (allTreatmentReminders && allTreatmentReminders.length != 0) {
-      return {
-        completed: true,
-        message: "All treatment reminders have been successfully retrieved.",
-        data: allTreatmentReminders
-      };
-    } else if (allTreatmentReminders.length == 0) {
-      return {
-        completed: false,
-        message: "All members are healthy so there are no calendar reminders"
-      };
-    }
-  } catch (error) {
-    console.error('Error when updating data:', error);
-    return {
-      completed: false,
-      message: "Failed to register user: " + error.message
-    };
-  }
-}
-
-exports.getTreatmentRemindersByUserId = async (userId) => {
-  try {
-    const reminders = await Reminder.find({ userId });
-
-    const reminderIds = reminders.map(reminder => reminder._id);
-
-    const treatmentReminders = await TreatmentReminder.find({ reminderId: { $in: reminderIds } });
-    if (treatmentReminders && treatmentReminders.length != 0) {
-      return {
-        completed: true,
-        message: "Treatment reminders have been successfully retrieved.",
-        data: treatmentReminders
-      };
-    } else if (treatmentReminders.length == 0) {
-      return {
-        completed: false,
-        message: "There are no calendar reminders"
-      };
-    }
-
-
-  } catch (error) {
-    console.error('Error getting treatment reminders:', error);
-    return {
-      completed: false,
-      message: "Failed to get treatment reminders."
-    };
-  }
-}
-
+//     if (allTreatmentReminders && allTreatmentReminders.length != 0) {
+//       return {
+//         completed: true,
+//         message: "All treatment reminders have been successfully retrieved.",
+//         data: allTreatmentReminders
+//       };
+//     } else if (allTreatmentReminders.length == 0) {
+//       return {
+//         completed: false,
+//         message: "All members are healthy so there are no calendar reminders"
+//       };
+//     }
+//   } catch (error) {
+//     console.error('Error when updating data:', error);
+//     return {
+//       completed: false,
+//       message: "Failed to register user: " + error.message
+//     };
+//   }
+// }
 
 exports.getAllTreatmentRemindersByYearMonthDay = async (data) => {
   const { year, month, day, userId } = data;
+  console.log(userId);
   if (!userId) {
     return {
       completed: false,
@@ -298,7 +268,7 @@ exports.getAllTreatmentRemindersByYearMonthDay = async (data) => {
           message: "Hiện tại các thành viên gia đình bạn không có lịch",
         };
       }
-      const userReminders = await getAllReminder(reminders);
+      const userReminders = await getAllReminders(reminders);
       return {
         completed: true,
         message: "Success",
@@ -329,9 +299,71 @@ exports.getAllTreatmentRemindersByYearMonthDay = async (data) => {
   }
 }
 
-getAllReminder = async (reminders) => {
+exports.getTreatmentRemindersByUserId = async (userId) => {
+  try {
+    if (!userId) {
+      return {
+        completed: false,
+        message: "UserId is missing."
+      };
+    }
+    const users = await User.find({ _id: userId });
+    if (!users) {
+      return {
+        completed: false,
+        message: "User not found."
+      }
+    };
+
+    if (users[0].role === "Dad") {
+      const reminders = await Reminder.find();
+      console.log(reminders);
+      if (reminders.length == 0) {
+        return {
+          completed: true,
+          message: "Hiện tại các thành viên gia đình bạn không có lịch",
+        };
+      }
+      const userReminders = await getAllReminders(reminders);
+      return {
+        completed: true,
+        message: "Success",
+        data: userReminders
+      };
+
+    }
+    if (users[0].role !== "Dad") {
+      const checkUserInReminder = await Reminder.find({ userId: userId });
+      console.log(checkUserInReminder);
+      if (checkUserInReminder.length == 0) {
+        return {
+          completed: true,
+          message: "Hiện tại bạn không có lịch cần nhắc nhở"
+        }
+      };
+      const userReminders = await getReminderFollowUserId(checkUserInReminder, userId);
+      return {
+        completed: true,
+        message: "Success",
+        data: userReminders
+      };
+    }
+
+  } catch (error) {
+    console.error('Error getting treatment reminders:', error);
+    return {
+      completed: false,
+      message: "Failed to get treatment reminders."
+    };
+  }
+}
+
+
+
+
+const getAllReminders = async (getAllreminders) => {
   const UserReminder = [];
-  for (let reminder of reminders) {
+  for (let reminder of getAllreminders) {
     const user = await User.findById(reminder.userId);
     const username = user.username;
     const treatmentReminders = await TreatmentReminder.find({ reminderId: reminder._id }, { reminderId: 0, __v: 0 });
@@ -341,13 +373,12 @@ getAllReminder = async (reminders) => {
   return UserReminder
 }
 
-getReminderFollowUserId = async (reminders, userId) => {
+const getReminderFollowUserId = async (reminders, userId) => {
   const remindersWithMatchingUserId = [];
   for (let reminder of reminders) {
     if (reminder.userId.equals(userId)) {
       const user = await User.findById(userId);
       const username = user.username;
-      console.log(username);
       const treatmentReminders = await TreatmentReminder.find({ reminderId: reminder._id }, { reminderId: 0, __v: 0 });
 
       remindersWithMatchingUserId.push({ username: username, treatmentReminders: treatmentReminders });
