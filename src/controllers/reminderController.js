@@ -32,15 +32,15 @@ exports.deleteTreatmentReminders = async (req, res) => {
 }
 
 
-exports.getAllTreatmentReminders = async (req, res) => {
-  try {
-    const getAllTreatmentReminder = await reminderRepository.getAllTreatmentReminders(req.params.id);
-    return res.json(getAllTreatmentReminder)
-  } catch (error) {
-    console.log('error', error);
-    return res.status(500).json({ error: error.message });
-  }
-}
+// exports.getAllTreatmentReminders = async (req, res) => {
+//   try {
+//     const getAllTreatmentReminder = await reminderRepository.getAllTreatmentReminders(req.params.id);
+//     return res.json(getAllTreatmentReminder)
+//   } catch (error) {
+//     console.log('error', error);
+//     return res.status(500).json({ error: error.message });
+//   }
+// }
 
 exports.getTreatmentRemindersByUserId = async (req, res) => {
   try {
@@ -61,5 +61,6 @@ exports.getAllTreatmentRemindersByYearMonthDay = async (req, res) => {
     return res.status(500).json({ error: error.message });
   }
 }
+
 
 
