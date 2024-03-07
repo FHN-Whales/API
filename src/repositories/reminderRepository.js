@@ -231,8 +231,8 @@ exports.deleteTreatmentReminder = async (treatmentReminderId) => {
 // }
 
 exports.getAllTreatmentRemindersByYearMonthDay = async (data) => {
-  const { date, userId } = data;
-  const [year, month, day] = date.split('/');
+  const { date, userId, familyId } = data;
+  let [year, month, day] = date.split('/');
   if (!userId) {
     return {
       completed: false,
@@ -246,21 +246,14 @@ exports.getAllTreatmentRemindersByYearMonthDay = async (data) => {
     };
   }
   try {
-    const users = await User.find({ _id: userId });
-    if (users.length == 0) {
+    const user = await User.find({ _id: userId });
+    if (user.length == 0) {
       return {
         completed: false,
         message: "User not found."
       }
     };
-
-    const reminders = await Reminder.find({
-      startDate: { $lte: new Date(year, month - 1, day + 1) },
-      endDate: { $gte: new Date(year, month - 1, day) }
-    });
-
-
-    if (users[0].role === "Dad") {
+    if (user[0].role === "Dad" || user[0].role === "Mom") {
       const getAllreminders = await Reminder.find({ userId: userId });
       if (getAllreminders.length == 0) {
         return {
@@ -268,15 +261,14 @@ exports.getAllTreatmentRemindersByYearMonthDay = async (data) => {
           message: "Hiện tại các thành viên gia đình bạn không có lịch",
         };
       }
-
-      const userReminders = await getAllReminders(reminders);
+      const userReminders = await getAllRemindersOfMember(year, month, day, familyId);
       return {
         completed: true,
         message: "Success",
         data: userReminders
       };
     }
-    if (users[0].role !== "Dad") {
+    if (user[0].role !== "Dad" ||user[0].role !== "Mom") {
       const checkUserInReminder = await Reminder.find({ userId: userId });
       if (checkUserInReminder.length == 0) {
         return {
@@ -284,7 +276,7 @@ exports.getAllTreatmentRemindersByYearMonthDay = async (data) => {
           message: "Hiện tại bạn không có lịch cần nhắc nhở"
         }
       };
-      const userReminders = await getReminderFollowUserId(reminders, userId);
+      const userReminders = await getReminderFollowUserId(year,month,day, userId);
       return {
         completed: true,
         message: "Success",
@@ -368,33 +360,74 @@ exports.getTreatmentRemindersByUserId = async (userId) => {
 
 
 
-const getAllReminders = async (getAllreminders) => {
-  console.log(getAllreminders);
-  const UserReminder = [];
-  for (let reminder of getAllreminders) {
-    console.log(reminder.userId);
-    const user = await User.findById({ _id: reminder.userId });
-    const username = user.username;
-    const treatmentReminders = await TreatmentReminder.find({ reminderId: reminder._id }, { reminderId: 0, __v: 0 });
-
-    UserReminder.push({ username: username, treatmentReminders: treatmentReminders });
+const getAllRemindersOfMember = async (year, month, day,familyId) => {
+  const members = await User.find({ familyId: familyId });
+  const memberReminder = [];
+  for (let member of members) {
+    const userId = member._id;
+    const reminders = await Reminder.find({ userId: userId });
+    memberReminder.push(reminders);
   }
-  return UserReminder
-}
 
-const getReminderFollowUserId = async (reminders, userId) => {
-  const remindersWithMatchingUserId = [];
-  for (let reminder of reminders) {
-    if (reminder.userId.equals(userId)) {
-      const user = await User.findById(userId);
-      const username = user.username;
-      const treatmentReminders = await TreatmentReminder.find({ reminderId: reminder._id }, { reminderId: 0, __v: 0 });
+  console.log(memberReminder);
+  const foundTreatmentReminders = [];
+  for (let reminders of memberReminder) {
+    for (let reminder of reminders) {
+      console.log(reminder.userId);
+      const startDate = new Date(reminder.startDate.getFullYear(), reminder.startDate.getMonth(), reminder.startDate.getDate());
+      const endDate = new Date(reminder.endDate.getFullYear(), reminder.endDate.getMonth(), reminder.endDate.getDate());
+      const targetDate = new Date(year, month - 1, day);
 
-      remindersWithMatchingUserId.push({ username: username, treatmentReminders: treatmentReminders });
+      console.log(startDate);
+      console.log(endDate);
+      console.log(targetDate);
+    
+      if (startDate <= targetDate && targetDate <= endDate) {
+        const treatmentReminders = await TreatmentReminder.find({ reminderId: reminder._id });
+        const user = await User.findById(reminder.userId).select("username")
+        foundTreatmentReminders.push({ user, treatmentInfo: treatmentReminders });
+      }
     }
   }
-  return remindersWithMatchingUserId;
+  return foundTreatmentReminders
+};
+
+const getReminderFollowUserId = async (year,month,day, userId) => {
+
+  const userReminder = await Reminder.find({ userId: userId });
+ 
+  const foundTreatmentReminders = [];
+
+  const startDate = new Date(userReminder[0].startDate.getFullYear(), userReminder[0].startDate.getMonth(), userReminder[0].startDate.getDate());
+  const endDate = new Date(userReminder[0].endDate.getFullYear(), userReminder[0].endDate.getMonth(), userReminder[0].endDate.getDate());
+  const targetDate = new Date(year, month - 1, day);
+  console.log(startDate);
+  console.log(endDate);
+  console.log(targetDate);
+  console.log();
+  if (startDate <= targetDate && targetDate <= endDate) {
+    const treatmentReminders = await TreatmentReminder.find({ reminderId: userReminder[0]._id });
+    const user = await User.findById(userReminder[0].userId).select("username")
+    foundTreatmentReminders.push({ user, treatmentInfo: treatmentReminders });
+  }
+  return foundTreatmentReminders;
 }
 
 
 
+
+    // for (let item of foundTreatmentReminders) {
+    //   console.log("User:", item.user.username); 
+    //   console.log("DeviceToken:", item.user.deviceToken); 
+
+    //   // Lặp qua mảng treatmentInfo của mỗi item
+    //   for (let treatment of item.treatmentInfo) {
+    //     console.log("Treatment ID:", treatment._id); 
+    //     console.log("Other properties:", treatment.timeOfDay);
+    //     console.log("Other properties:", treatment.treatmentTime); 
+    //     for (let medication of treatment.medications) {
+    //       console.log("Medication Name:", medication.medicationName); 
+    //       console.log("Medication Dosage:", medication.dosage); 
+    //     }
+    //   }
+    // }

@@ -18,7 +18,7 @@ async function sendNotificationsForTodayReminders() {
     for (const treatmentReminder of treatmentReminders) {
       const { _id, timeOfDay, treatmentTime, medications } = treatmentReminder;
 
-      const deviceToken = 'f1hXotwnQqC1mZftrJSdXm:APA91bFjOxFiuHKnUXDElazBu2WNXAiqRzKaBn-JVQUuY2qEqcGNKJfq0tWof31LsIACGJfL_VuKeYSpCrnRcZerxkRG0nZ5_fIKoC5vQjUqGMR-Mk-A-kVyu1rhYAvmBlDkQr4K99Ia'; 
+      const deviceToken = 'f1hXotwnQkC1mZftrJSdXm:APA91bFjOxFiuHKnUXDElazBu2WNXAiqRzKaBn-JVQUuY2qEqcGNKJfq0tWof31LsIACGJfL_VuKeYSpCrnRcZerxkRG0nZ5_fIKoC5vQjUqGMR-Mk-A-kVyu1rhYAvmBlDkQr4K99Ia'; 
       const title = 'Treatment reminder';
       const body = `Treatment time: ${treatmentTime}`;
       await sendNotificationToDevice(deviceToken, title, body);
@@ -32,10 +32,10 @@ async function sendNotificationsForTodayReminders() {
 }
 
 
-cron.schedule('00 23 * * *', () => {
-  sendNotificationsForTodayReminders();
-  console.log('Công việc được lên lịch để gửi thông báo cho những nhắc nhở trong ngày.');
-});
+// cron.schedule('00 23 * * *', () => {
+//   sendNotificationsForTodayReminders();
+//   console.log('Công việc được lên lịch để gửi thông báo cho những nhắc nhở trong ngày.');
+// });
 
 
 
