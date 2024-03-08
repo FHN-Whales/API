@@ -232,7 +232,7 @@ exports.deleteTreatmentReminder = async (treatmentReminderId) => {
 
 exports.getReminderTreatmentRemindersByYearMonthDay = async (data) => {
   const { date, userId, familyId } = data;
-  let [year, month, day] = date.split('/');
+  let [year, month, day] = date.split('-');
   if (!userId) {
     return {
       completed: false,
