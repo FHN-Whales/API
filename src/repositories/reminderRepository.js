@@ -292,9 +292,11 @@ exports.getReminderTreatmentRemindersByYearMonthDay = async (data) => {
   }
 }
 
-exports.getTreatmentRemindersByUserId = async (data) => {
-  const {userId, familyId} = data
+exports.getTreatmentRemindersByUserId = async (familyId, userId) => {
   try {
+    console.log(familyId);
+    console.log(userId);
+
     if (!userId) {
       return {
         completed: false,
@@ -371,6 +373,7 @@ exports.getTreatmentRemindersByUserId = async (data) => {
 
 
 const getAllRemindersOfMember = async (year, month, day,familyId) => {
+  console.log();
   const members = await User.find({ familyId: familyId });
   const memberReminder = [];
   for (let member of members) {

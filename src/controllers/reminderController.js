@@ -44,7 +44,9 @@ exports.deleteTreatmentReminders = async (req, res) => {
 
 exports.getTreatmentRemindersByUserId = async (req, res) => {
   try {
-    const getTreatmentReminderByUserId = await reminderRepository.getTreatmentRemindersByUserId(req.body);
+    const familyId = req.params.familyId;
+    const userId = req.params.userId;
+    const getTreatmentReminderByUserId = await reminderRepository.getTreatmentRemindersByUserId(familyId,userId);
     return res.json(getTreatmentReminderByUserId)
   } catch (error) {
     console.log('error', error);
