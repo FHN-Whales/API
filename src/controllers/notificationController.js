@@ -39,10 +39,10 @@ async function sendNotificationsForTodayReminders() {
 
 
 
-// setTimeout(() => {
-//   sendNotificationsForTodayReminders();
-//   console.log('Đã gửi thông báo cho những nhắc nhở trong ngày.');
-// }, 2000);
+setTimeout(() => {
+  sendNotificationsForTodayReminders();
+  console.log('Đã gửi thông báo cho những nhắc nhở trong ngày.');
+}, 2000);
 
 
 

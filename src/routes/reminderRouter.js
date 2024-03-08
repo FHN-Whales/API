@@ -4,7 +4,7 @@ const express = require('express');
 const ReminderRouter = express.Router();
 
 // ReminderRouter.get('/getAllTreatmentReminders', reminderController.getAllTreatmentReminders);
-ReminderRouter.get('/getTreatmentRemindersByUserId', reminderController.getTreatmentRemindersByUserId);
+ReminderRouter.get('/getTreatmentRemindersByUserId/:familyId/:userId', reminderController.getTreatmentRemindersByUserId);
 ReminderRouter.post('/CreateTreatmentReminders', reminderController.CreateTreatmentReminders);
 ReminderRouter.put('/UpdateTreatmentReminders', reminderController.updateTreatmentReminders);
 ReminderRouter.delete('/DeleteTreatmentReminders/:id', reminderController.deleteTreatmentReminders);
