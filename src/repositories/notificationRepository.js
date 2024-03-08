@@ -3,25 +3,49 @@ const Reminder = require("../models/ReminderModel")
 const TreatmentReminder = require("../models/TreatmentReminderModel")
 
 async function fetchRemindersContainingToday() {
+
   try {
     const today = new Date();
 
-    const reminders = await Reminder.find({
-      startDate: { $lte: today },
-      endDate: { $gte: today }
-    }).select('_id');
-    if (reminders.lenght == 0) {
-      return {
-        completed: true,
-        message: "There is no calendar for reminders"
-      };
-    }
-    const modifiedReminders = reminders.map(reminder => {
-      return { reminderId: reminder._id };
+    const getYearMonthDayOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
+
+    console.log(getYearMonthDayOfToday);
+
+    const reminders = await Reminder.find();
+    let foundReminders = [];
+    reminders.forEach((Reminder) => {
+      const startDate = new Date(Reminder.startDate);
+      const endDate = new Date(Reminder.endDate);
+
+      const getYearMonthDayOfstartDate = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate() + 1);
+      const getYearMonthDayOfendDate = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate() + 1);
+      if (getYearMonthDayOfToday >= getYearMonthDayOfstartDate && getYearMonthDayOfToday <= getYearMonthDayOfendDate) {
+        foundReminders.push({ _id: reminder._id, userId: reminder.userId });
+      } else {
+        console.log("Ngày hôm nay không nằm trong khoảng thời gian của reminder này.");
+      }
     });
 
-    const out = await fetchTreatmentRemindersByReminderIds(modifiedReminders)
-    return out
+    console.log("foundReminders",foundReminders);
+
+
+    // const reminders = await Reminder.find({
+    //   startDate: { $lte: today },
+    //   endDate: { $gte: today }
+    // }).select('_id userId');
+
+    // console.log(reminders);
+
+    // if (reminders.lenght == 0) {
+    //   return {
+    //     completed: true,
+    //     message: "There is no calendar for reminders"
+    //   };
+    // }
+
+
+    // const out = await fetchTreatmentRemindersByReminderIds(modifiedReminders)
+    // return out
   } catch (error) {
     console.error('Lỗi khi lấy danh sách nhắc nhở:', error);
     throw error;
@@ -36,8 +60,6 @@ async function fetchTreatmentRemindersByReminderIds(modifiedReminders) {
     const treatmentReminders = await TreatmentReminder.find({
       reminderId: { $in: reminderIds }
     }).select('_id timeOfDay treatmentTime medications.medicationName medications.dosage');
-    // const treatmentTimes = treatmentReminders.map(reminder => reminder.treatmentTime);
-    // console.log(treatmentTimes);
     return {
       treatmentReminders,
     };
