@@ -44,7 +44,7 @@ exports.deleteTreatmentReminders = async (req, res) => {
 
 exports.getTreatmentRemindersByUserId = async (req, res) => {
   try {
-    const getTreatmentReminderByUserId = await reminderRepository.getTreatmentRemindersByUserId(req.params.id);
+    const getTreatmentReminderByUserId = await reminderRepository.getTreatmentRemindersByUserId(req.body);
     return res.json(getTreatmentReminderByUserId)
   } catch (error) {
     console.log('error', error);
@@ -52,9 +52,9 @@ exports.getTreatmentRemindersByUserId = async (req, res) => {
   }
 }
 
-exports.getAllTreatmentRemindersByYearMonthDay = async (req, res) => {
+exports.getRemindersTreatmentRemindersByYearMonthDay = async (req, res) => {
   try {
-    const getTreatmentReminderByUserId = await reminderRepository.getAllTreatmentRemindersByYearMonthDay(req.body);
+    const getTreatmentReminderByUserId = await reminderRepository.getReminderTreatmentRemindersByYearMonthDay(req.body);
     return res.json(getTreatmentReminderByUserId)
   } catch (error) {
     console.log('error', error);

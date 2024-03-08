@@ -230,7 +230,7 @@ exports.deleteTreatmentReminder = async (treatmentReminderId) => {
 //   }
 // }
 
-exports.getAllTreatmentRemindersByYearMonthDay = async (data) => {
+exports.getReminderTreatmentRemindersByYearMonthDay = async (data) => {
   const { date, userId, familyId } = data;
   let [year, month, day] = date.split('/');
   if (!userId) {
@@ -292,7 +292,8 @@ exports.getAllTreatmentRemindersByYearMonthDay = async (data) => {
   }
 }
 
-exports.getTreatmentRemindersByUserId = async (userId) => {
+exports.getTreatmentRemindersByUserId = async (data) => {
+  const {userId, familyId} = data
   try {
     if (!userId) {
       return {
@@ -307,45 +308,54 @@ exports.getTreatmentRemindersByUserId = async (userId) => {
         message: "User not found."
       }
     };
-
-    if (users[0].role === "Dad") {
-      const reminders = await Reminder.find();
-      console.log(reminders);
-      if (reminders.length == 0) {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = today.getMonth() + 1;
+    const day = today.getDate();
+    try {
+      const user = await User.find({ _id: userId });
+      if (user.length == 0) {
         return {
-          completed: true,
-          message: "Hiện tại các thành viên gia đình bạn không có lịch",
-        };
-      }
-      const userReminders = await getAllReminders(reminders);
-      if (userReminders.length == 0) {
+          completed: false,
+          message: "User not found."
+        }
+      };
+      if (user[0].role === "Dad" || user[0].role === "Mom") {
+        const getAllreminders = await Reminder.find({ userId: userId });
+        if (getAllreminders.length == 0) {
+          return {
+            completed: true,
+            message: "Hiện tại các thành viên gia đình bạn không có lịch",
+          };
+        }
+        const userReminders = await getAllRemindersOfMember(year, month, day, familyId);
         return {
           completed: true,
           message: "Success",
-
+          data: userReminders
+        };
+      }
+      if (user[0].role !== "Dad" ||user[0].role !== "Mom") {
+        const checkUserInReminder = await Reminder.find({ userId: userId });
+        if (checkUserInReminder.length == 0) {
+          return {
+            completed: true,
+            message: "Hiện tại bạn không có lịch cần nhắc nhở"
+          }
+        };
+        const userReminders = await getReminderFollowUserId(year,month,day, userId);
+        return {
+          completed: true,
+          message: "Success",
+          data: userReminders
         };
       }
       return {
-        completed: true,
-        message: "Hiện tại các thành viên gia đình bạn không có lịch1"
+        completed: false,
+        message: "User is not authorized."
       };
-
-    }
-    if (users[0].role !== "Dad") {
-      const checkUserInReminder = await Reminder.find({ userId: userId });
-      console.log(checkUserInReminder);
-      if (checkUserInReminder.length == 0) {
-        return {
-          completed: true,
-          message: "Hiện tại bạn không có lịch cần nhắc nhở"
-        }
-      };
-      const userReminders = await getReminderFollowUserId(checkUserInReminder, userId);
-      return {
-        completed: true,
-        message: "Success",
-        data: userReminders
-      };
+    } catch (error) {
+      console.error(error);
     }
 
   } catch (error) {
