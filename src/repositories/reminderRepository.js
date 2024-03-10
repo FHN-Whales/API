@@ -333,7 +333,7 @@ exports.getTreatmentRemindersByUserId = async (familyId, userId) => {
         return {
           completed: true,
           message: "Success",
-          data: userReminders
+          dataTreatment: userReminders
         };
       }
       if (user[0].role !== "Dad" ||user[0].role !== "Mom") {
