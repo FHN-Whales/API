@@ -264,7 +264,7 @@ exports.getReminderTreatmentRemindersByYearMonthDay = async (date, familyId, use
       return {
         completed: true,
         message: "Success",
-        data: userReminders
+        dataTreatmentSearch: userReminders
       };
     }
     if (user[0].role !== "Dad" ||user[0].role !== "Mom") {
@@ -279,7 +279,7 @@ exports.getReminderTreatmentRemindersByYearMonthDay = async (date, familyId, use
       return {
         completed: true,
         message: "Success",
-        data: userReminders
+        dataTreatmentSearch: userReminders
       };
     }
     return {
