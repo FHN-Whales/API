@@ -348,7 +348,7 @@ exports.getTreatmentRemindersByUserId = async (familyId, userId) => {
         return {
           completed: true,
           message: "Success",
-          data: userReminders
+          dataTreatment: userReminders
         };
       }
       return {
