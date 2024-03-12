@@ -1,6 +1,7 @@
 
 const Reminder = require("../models/ReminderModel")
 const TreatmentReminder = require("../models/TreatmentReminderModel")
+const User = require('../models/userModel');
 
 async function fetchRemindersContainingToday() {
 
@@ -20,32 +21,13 @@ async function fetchRemindersContainingToday() {
       const getYearMonthDayOfstartDate = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate() + 1);
       const getYearMonthDayOfendDate = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate() + 1);
       if (getYearMonthDayOfToday >= getYearMonthDayOfstartDate && getYearMonthDayOfToday <= getYearMonthDayOfendDate) {
-        foundReminders.push({ _id: reminder._id, userId: reminder.userId });
+        foundReminders.push({ ReminderId: Reminder._id, userId: Reminder.userId });
       } else {
-        console.log("Ngày hôm nay không nằm trong khoảng thời gian của reminder này.");
+
       }
     });
-
-    console.log("foundReminders",foundReminders);
-
-
-    // const reminders = await Reminder.find({
-    //   startDate: { $lte: today },
-    //   endDate: { $gte: today }
-    // }).select('_id userId');
-
-    // console.log(reminders);
-
-    // if (reminders.lenght == 0) {
-    //   return {
-    //     completed: true,
-    //     message: "There is no calendar for reminders"
-    //   };
-    // }
-
-
-    // const out = await fetchTreatmentRemindersByReminderIds(modifiedReminders)
-    // return out
+    const out = await fetchTreatmentRemindersByReminderIds(foundReminders)
+    return out
   } catch (error) {
     console.error('Lỗi khi lấy danh sách nhắc nhở:', error);
     throw error;
@@ -53,15 +35,39 @@ async function fetchRemindersContainingToday() {
 }
 
 
-async function fetchTreatmentRemindersByReminderIds(modifiedReminders) {
+async function fetchTreatmentRemindersByReminderIds(foundReminders) {
   try {
-    const reminderIds = modifiedReminders.map(reminder => reminder.reminderId);
 
-    const treatmentReminders = await TreatmentReminder.find({
-      reminderId: { $in: reminderIds }
-    }).select('_id timeOfDay treatmentTime medications.medicationName medications.dosage');
+    let foundTreatmentReminders = [];
+    for (const reminder of foundReminders) {
+      const { ReminderId, userId } = reminder;
+
+      const treatmentReminder = await TreatmentReminder.findOne({ reminderId: ReminderId });
+
+      const user = await User.findById({ _id: userId }).select('username deviceToken');
+      console.log(treatmentReminder);
+      console.log(user);
+
+      if (treatmentReminder && user) {
+        const combinedInfo = {
+          _id: treatmentReminder._id,
+          timeOfDay: treatmentReminder.timeOfDay,
+          treatmentTime: treatmentReminder.treatmentTime,
+          medications: treatmentReminder.medications,
+          noteTreatment: treatmentReminder.noteTreatment,
+          username: user.username,
+          deviceToken: user.deviceToken
+        };
+        foundTreatmentReminders.push(combinedInfo);
+      } else {
+        return {
+          completed: true,
+          message: "Hiện tại các thành viên gia đình bạn không có lịch",
+        };
+      }
+    }
     return {
-      treatmentReminders,
+      foundTreatmentReminders,
     };
   } catch (error) {
     console.error('Error fetching treatment reminders by reminder IDs:', error);
