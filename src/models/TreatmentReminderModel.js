@@ -9,6 +9,7 @@ const treatmentReminderSchema = new mongoose.Schema({
     medicationName: String,
     dosage: Number
   }],
+  noteTreatment: { type: String, default: null },
   reminderId: { type: Schema.Types.ObjectId, ref: 'Reminders' },
 });
 
