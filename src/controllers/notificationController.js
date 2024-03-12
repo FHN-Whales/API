@@ -3,20 +3,6 @@ const cron = require('node-cron');
 const { firebase } = require('../config/firebase/firebase')
 
 
-
-// cron.schedule('00 23 * * *', () => {
-//   sendNotificationsForTodayReminders();
-//   console.log('Công việc được lên lịch để gửi thông báo cho những nhắc nhở trong ngày.');
-// });
-
-setTimeout(() => {
-  sendNotificationsForTodayReminders();
-  console.log('Đã gửi thông báo cho những nhắc nhở trong ngày.');
-}, 2000);
-
-
-
-
 async function sendNotificationsForTodayReminders() {
   try {
     const { foundTreatmentReminders } = await notificationRepository.fetchRemindersContainingToday();
