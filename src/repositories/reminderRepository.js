@@ -3,6 +3,7 @@ const Family = require("../models/familyModel")
 const Reminder = require("../models/ReminderModel")
 const TreatmentReminder = require("../models/TreatmentReminderModel")
 const Users = require('../models/userModel')
+const HealthCheck = require('../models/healthCheckReminderModel')
 const crypto = require("crypto")
 const nodemailer = require("nodemailer")
 const bcrypt = require("bcrypt")
@@ -205,31 +206,6 @@ exports.deleteTreatmentReminder = async (treatmentReminderId) => {
   }
 }
 
-// exports.getAllTreatmentReminders = async () => {
-//   try {
-//     const allTreatmentReminders = await TreatmentReminder.find();
-
-//     if (allTreatmentReminders && allTreatmentReminders.length != 0) {
-//       return {
-//         completed: true,
-//         message: "All treatment reminders have been successfully retrieved.",
-//         data: allTreatmentReminders
-//       };
-//     } else if (allTreatmentReminders.length == 0) {
-//       return {
-//         completed: false,
-//         message: "All members are healthy so there are no calendar reminders"
-//       };
-//     }
-//   } catch (error) {
-//     console.error('Error when updating data:', error);
-//     return {
-//       completed: false,
-//       message: "Failed to register user: " + error.message
-//     };
-//   }
-// }
-
 exports.getReminderTreatmentRemindersByYearMonthDay = async (date, familyId, userId) => {
   let [year, month, day] = date.split('-');
   if (!userId) {
@@ -392,9 +368,6 @@ exports.getTreatmentRemindersByUserId = async (familyId, userId) => {
   }
 }
 
-
-
-
 const getAllRemindersOfMember = async (year, month, day,familyId) => {
   console.log();
   const members = await User.find({ familyId: familyId });
@@ -449,6 +422,74 @@ const getReminderFollowUserId = async (year,month,day, userId) => {
   return foundTreatmentReminders;
 }
 
+/// HEALTHCHECK
+
+exports.CreateHealthCheck= async (dataHealthCheck) =>{
+  try {
+      const {userId, reExaminationDate, reExaminationTime, reExaminationLocation, nameHospital, userNote} = dataHealthCheck
+    if (!userId) {
+      return {
+        completed: false,
+        message: "UserId is missing."
+      };
+    }
+    if(!reExaminationDate){
+      return {
+        completed: true,
+        message: "re-ExaminationDate cannot be left blank."
+      }
+    }
+    if(!reExaminationTime){
+      return {
+        completed: true,
+        message: "re-ExaminationTime cannot be left blank."
+      }
+    }    if(!reExaminationLocation){
+      return {
+        completed: true,
+        message: "re-ExaminationLocation cannot be left blank."
+      }
+    }    if(!nameHospital){
+      return {
+        completed: true,
+        message: "Hospital's name cannot be left blank."
+      }
+    }
+    const existingHealthCheck = await HealthCheck.findOne({
+      reExaminationDate,
+      reExaminationTime,
+      reExaminationLocation
+    });
+
+    if (existingHealthCheck) {
+      return {
+        completed: false,
+        message: "Health check is already exists."
+      };
+    }
+       const newHealthCheck = await HealthCheck.create({
+        userId,
+        reExaminationDate,
+        reExaminationTime,
+        reExaminationLocation,
+        nameHospital,
+        userNote
+      });
+  
+      return {
+        completed: true,
+        message: "Health check created successfully.",
+        newHealthCheck
+      };
+  
+  } catch (error) {
+    console.error('Error getting treatment reminders:', error);
+    return {
+      completed: false,
+      message: "Failed to get treatment reminders."
+    };
+  }
+}
 
 
 

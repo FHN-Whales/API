@@ -46,7 +46,7 @@ exports.getTreatmentRemindersByUserId = async (req, res) => {
   try {
     const familyId = req.params.familyId;
     const userId = req.params.userId;
-    const getTreatmentReminderByUserId = await reminderRepository.getTreatmentRemindersByUserId(familyId,userId);
+    const getTreatmentReminderByUserId = await reminderRepository.getTreatmentRemindersByUserId(familyId, userId);
     return res.json(getTreatmentReminderByUserId)
   } catch (error) {
     console.log('error', error);
@@ -64,6 +64,18 @@ exports.getRemindersTreatmentRemindersByYearMonthDay = async (req, res) => {
   } catch (error) {
     console.log('error', error);
     return res.status(500).json({ error: error.message });
+  }
+}
+
+// HEALTH CHECK
+
+exports.CreateHealthCheck = async (req, res) => {
+  try {
+    const CreateHealthCheckReminder = await reminderRepository.CreateHealthCheck(req.body);
+    return res.json(CreateHealthCheckReminder);
+  } catch (error) {
+    console.log('error: ', error);
+    return res.status(500).json({ error: error.message })
   }
 }
 
