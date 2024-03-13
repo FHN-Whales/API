@@ -44,7 +44,7 @@ exports.CreateTreatmentReminders = async (data) => {
       };
     }
 
-    if (!endDate) {
+    if (!endDate){
       return {
         completed: false,
         message: "endDate cannot be left blank."
@@ -257,10 +257,16 @@ exports.getReminderTreatmentRemindersByYearMonthDay = async (date, familyId, use
       if (getAllreminders.length == 0) {
         return {
           completed: true,
-          message: "Hiện tại các thành viên gia đình bạn không có lịch",
+          message: "Currently your family members do not have a schedule",
         };
       }
       const userReminders = await getAllRemindersOfMember(year, month, day, familyId);
+      if(userReminders.length == 0){
+        return {
+          completed: true,
+          message: "Currently your family members do not have a schedule",
+        };
+      }
       return {
         completed: true,
         message: "Success",
@@ -272,10 +278,16 @@ exports.getReminderTreatmentRemindersByYearMonthDay = async (date, familyId, use
       if (checkUserInReminder.length == 0) {
         return {
           completed: true,
-          message: "Hiện tại bạn không có lịch cần nhắc nhở"
+          message: "You currently have no calendars that need reminders"
         }
       };
       const userReminders = await getReminderFollowUserId(year,month,day, userId);
+      if(userReminders.length == 0 ){
+        return {
+          completed: true,
+          message: "You currently have no calendars that need reminders"
+        };
+      }
       return {
         completed: true,
         message: "Success",
@@ -326,10 +338,16 @@ exports.getTreatmentRemindersByUserId = async (familyId, userId) => {
         if (getAllreminders.length == 0) {
           return {
             completed: true,
-            message: "Hiện tại các thành viên gia đình bạn không có lịch",
+            message: "Currently your family members do not have a schedule",
           };
         }
         const userReminders = await getAllRemindersOfMember(year, month, day, familyId);
+        if(userReminders.length == 0){
+          return {
+            completed: true,
+            message: "Currently your family members do not have a schedule",
+          };
+        }
         return {
           completed: true,
           message: "Success",
@@ -341,10 +359,16 @@ exports.getTreatmentRemindersByUserId = async (familyId, userId) => {
         if (checkUserInReminder.length == 0) {
           return {
             completed: true,
-            message: "Hiện tại bạn không có lịch cần nhắc nhở"
+            message: "You currently have no calendars that need reminders"
           }
         };
         const userReminders = await getReminderFollowUserId(year,month,day, userId);
+        if(userReminders.length == 0){
+          return {
+            completed: true,
+            message: "You currently have no calendars that need reminders"
+          }
+        }
         return {
           completed: true,
           message: "Success",

@@ -3,20 +3,22 @@ const cron = require('node-cron');
 const { firebase } = require('../config/firebase/firebase')
 
 
-async function sendNotificationsForTodayReminders() {
+exports.sendNotificationsForTodayReminders = async () => {
   try {
     const { foundTreatmentReminders } = await notificationRepository.fetchRemindersContainingToday();
-    console.log("foundTreatmentReminders: ", foundTreatmentReminders);
     if (foundTreatmentReminders.length == 0) {
-      console.log("Khong co lich de notification");
       return {
         completed: true,
-        message: "Hiện tại các thành viên gia đình bạn không có lịch",
+        message: "Hiện tại các thành viên gia đình bạn không có lịch"
       };
     }
+    const now = new Date();
+    const now_vietnam = new Date(now.getTime() + 7 * 3600000);
     for (const treatmentReminder of foundTreatmentReminders) {
       const { _id, timeOfDay, treatmentTime, medications, noteTreatment, username, deviceToken } = treatmentReminder;
-
+      if (treatmentTime !== now_vietnam.toISOString().slice(11, 16)) {
+        continue;
+      }
       let medicationsString = '';
       for (const medication of medications) {
         medicationsString += `   + ${medication.medicationName}: ${medication.dosage}, \n`;

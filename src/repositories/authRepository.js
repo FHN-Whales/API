@@ -292,12 +292,12 @@ exports.SignInRoleUser = async (Data) => {
       }
     }
     const userId = foundUser._id;
-    const deviceToken = Data.deviceToken; 
-  
+    const deviceToken = Data.deviceToken;
+
     const result = await saveDeviceTokenToUser(userId, deviceToken);
 
-    console.log("userId,,,",userId);
-    console.log("deviceToken,,,",deviceToken);
+    console.log("userId,,,", userId);
+    console.log("deviceToken,,,", deviceToken);
 
 
     if (foundUser) {
