@@ -9,7 +9,6 @@ async function fetchRemindersContainingToday() {
     const today = new Date();
 
     const getYearMonthDayOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
-
     console.log(getYearMonthDayOfToday);
 
     const reminders = await Reminder.find();
@@ -37,7 +36,6 @@ async function fetchRemindersContainingToday() {
 
 async function fetchTreatmentRemindersByReminderIds(foundReminders) {
   try {
-
     let foundTreatmentReminders = [];
     for (const reminder of foundReminders) {
       const { ReminderId, userId } = reminder;
