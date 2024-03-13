@@ -79,5 +79,26 @@ exports.CreateHealthCheck = async (req, res) => {
   }
 }
 
+exports.EditHealthCheck = async (req, res) => {
+  try {
+    const EditHealthCheckReminder = await reminderRepository.EditHealthCheck(req.body);
+    return res.json(EditHealthCheckReminder);
+  } catch (error) {
+    console.log('error: ', error);
+    return res.status(500).json({ error: error.message })
+  }
+}
+
+exports.DeleteHealthCheck = async (req, res) => {
+  try {
+    const healthCheckId = req.params.healthCheckId;
+    const DeleteHealthCheckReminder = await reminderRepository.DeleteHealthCheck(healthCheckId);
+    return res.json(DeleteHealthCheckReminder);
+  } catch (error) {
+    console.log('error: ', error);
+    return res.status(500).json({ error: error.message })
+  }
+}
+
 
 

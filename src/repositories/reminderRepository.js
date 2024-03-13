@@ -501,6 +501,91 @@ exports.CreateHealthCheck= async (dataHealthCheck) =>{
   }
 }
 
+// edit
+
+exports.EditHealthCheck = async (newData) => {
+  try {
+    const { reExaminationDate, reExaminationTime, reExaminationLocation, nameHospital, userNote, healthCheckId } = newData;
+
+    const existingHealthCheck = await HealthCheck.findById(healthCheckId);
+
+    if (!existingHealthCheck) {
+      return {
+        completed: false,
+        message: "Health check not found."
+      };
+    }
+
+
+    if (reExaminationDate) {
+      existingHealthCheck.reExaminationDate = reExaminationDate;
+    }
+    if (reExaminationTime) {
+      const validTimeRegex = /^(?:2[0-3]|[01][0-9]):[0-5][0-9]$/;
+      if (!validTimeRegex.test(reExaminationTime)) {
+        return {
+          completed: false,
+          message: "Invalid format for re-ExaminationTime. Please use the format hh:mm in 24-hour notation."
+        };
+      }
+      existingHealthCheck.reExaminationTime = reExaminationTime;
+    }
+    if (reExaminationLocation) {
+      existingHealthCheck.reExaminationLocation = reExaminationLocation;
+    }
+    if (nameHospital) {
+      existingHealthCheck.nameHospital = nameHospital;
+    }
+    if (userNote) {
+      existingHealthCheck.userNote = userNote;
+    }
+
+    await existingHealthCheck.save();
+
+    return {
+      completed: true,
+      message: "Health check updated successfully.",
+      updatedHealthCheck: existingHealthCheck
+    };
+
+  } catch (error) {
+    console.error('Error updating health check:', error);
+    return {
+      completed: false,
+      message: "Failed to update health check."
+    };
+  }
+}
+
+exports.DeleteHealthCheck = async (healthCheckId) => {
+  try {
+    console.log(healthCheckId);
+    const existingHealthCheck = await HealthCheck.findById(healthCheckId);
+
+    if (!existingHealthCheck) {
+      return {
+        completed: false,
+        message: "Health check not found."
+      };
+    }
+
+    await existingHealthCheck.remove();
+
+    return {
+      completed: true,
+      message: "Health check deleted successfully."
+    };
+
+  } catch (error) {
+    console.error('Error deleting health check:', error);
+    return {
+      completed: false,
+      message: "Failed to delete health check."
+    };
+  }
+}
+
+
 
 
     // for (let item of foundTreatmentReminders) {
