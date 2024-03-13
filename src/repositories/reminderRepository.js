@@ -433,6 +433,18 @@ exports.CreateHealthCheck= async (dataHealthCheck) =>{
         message: "UserId is missing."
       };
     }
+    const validTimeRegex = /^(?:2[0-3]|[01][0-9]):[0-5][0-9]$/;
+
+    for (let time of reExaminationTime) {
+      if (!validTimeRegex.test(time)) {
+        return {
+          completed: false,
+          message: "Invalid format for treatmentTime. Please use the format hh:mm in 24-hour notation."
+        };
+      }
+    }
+
+
     if(!reExaminationDate){
       return {
         completed: true,
