@@ -552,9 +552,9 @@ exports.EditHealthCheck = async (newData) => {
 
 exports.DeleteHealthCheck = async (healthCheckId) => {
   try {
-    console.log(healthCheckId);
+    console.log("healthCheckId",healthCheckId);
     const existingHealthCheck = await HealthCheck.findById(healthCheckId);
-
+    console.log("existingHealthCheck",existingHealthCheck);
     if (!existingHealthCheck) {
       return {
         completed: false,
@@ -562,7 +562,7 @@ exports.DeleteHealthCheck = async (healthCheckId) => {
       };
     }
 
-    await existingHealthCheck.remove();
+    await HealthCheck.deleteOne({ _id: healthCheckId }); 
 
     return {
       completed: true,

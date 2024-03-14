@@ -15,12 +15,4 @@ ReminderRouter.delete('/DeleteHealthCheckReminder/:healthCheckId', reminderContr
 ReminderRouter.get('/getHealthCheckRemindersByUserId/:familyId/:userId', reminderController.getAllHealthCheckReminderToday);
 
 
-
-
-
-
-
-
-
-
 module.exports = ReminderRouter;

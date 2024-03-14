@@ -1,7 +1,7 @@
 const notificationRepository = require('../repositories/notificationRepository');
 const cron = require('node-cron');
 const { firebase } = require('../config/firebase/firebase')
-
+const http = require('http');
 
 exports.sendNotificationsForTodayReminders = async () => {
   try {
@@ -28,6 +28,7 @@ exports.sendNotificationsForTodayReminders = async () => {
       const title = 'Treatment reminder | Hello ' + `${username}`;
       const body = `- Drinking time: ${treatmentTime}\n${medicationsString}\n- Note: ${noteTreatment}`;
       await sendNotificationToDevice(deviceToken, title, body);
+      await handleSendNotification(deviceToken, title, body)
       console.log(`Sent notification for treatment reminder at ${treatmentTime}`);
     }
 
@@ -57,3 +58,27 @@ async function sendNotificationToDevice(deviceToken, title, body) {
     throw error;
   }
 }
+const handleSendNotification = async (deviceToken, title, body) => {
+  const request = require('request');
+  const options = {
+    method: 'POST',
+    url: 'https://fcm.googleapis.com/fcm/send',
+    headers: {
+      Authorization: 'key=AAAAIW-xU0Q:APA91bExpd0_CnejidHGRFqWmpXXMN_z2W1E_Ejhtljhf1rZrDGx_01Go_qdLJ7ZUbOxpTYu28nptRDJFpe6ftkquibSJszz-qFk94jgDsPpOzBVqcs0hMjlV8wYz9o1d9OziGUqkR7p',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      registration_ids: [deviceToken],
+      notification: {
+        title: title,
+        body: body
+      }
+    })
+  };
+
+  request(options, function (error, response) {
+    if (error) throw new Error(error);
+    console.log(response.body);
+  });
+}
+
