@@ -12,6 +12,8 @@ ReminderRouter.get('/getRemindersTreatmentRemindersByYearMonthDay/:date/:familyI
 ReminderRouter.post('/CreateHealthCheckReminder', reminderController.CreateHealthCheck);
 ReminderRouter.put('/EditHealthCheckReminder', reminderController.EditHealthCheck);
 ReminderRouter.delete('/DeleteHealthCheckReminder/:healthCheckId', reminderController.DeleteHealthCheck);
+ReminderRouter.get('/getHealthCheckRemindersByUserId/:familyId/:userId', reminderController.getAllHealthCheckReminderToday);
+
 
 
 
