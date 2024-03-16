@@ -111,6 +111,16 @@ exports.getAllHealthCheckReminderToday = async (req, res) => {
     return res.status(500).json({ error: error.message })
   }
 }
+exports.getHealthCheckReminderById = async (req, res) => {
+  try {
+    const healthCheckId = req.params.healthCheckId;
+    const GetHealthCheckReminnderById = await reminderRepository.GetHealthCheckReminderById(healthCheckId)
+    return res.json(GetHealthCheckReminnderById)
+  } catch (error) {
+    console.log(error.message)
+    return res.status(500).json({ error: error.message })
+  }
+}
 
 
 
