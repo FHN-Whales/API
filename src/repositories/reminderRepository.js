@@ -496,9 +496,9 @@ exports.CreateHealthCheck= async (dataHealthCheck) =>{
 
 // edit
 
-exports.EditHealthCheck = async (newData) => {
+exports.EditHealthCheck = async (healthCheckId, newDataHealthCheck) => {
   try {
-    const { reExaminationDate, reExaminationTime, reExaminationLocation, nameHospital, userNote, healthCheckId } = newData;
+    const { reExaminationDate, reExaminationTime, reExaminationLocation, nameHospital, userNote} = newDataHealthCheck;
 
     const existingHealthCheck = await HealthCheck.findById(healthCheckId);
 

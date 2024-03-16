@@ -2,6 +2,8 @@
 const Reminder = require("../models/ReminderModel")
 const TreatmentReminder = require("../models/TreatmentReminderModel")
 const User = require('../models/userModel');
+const HealthCheck = require('../models/healthCheckReminderModel');
+
 
 async function fetchRemindersContainingToday() {
 
@@ -9,7 +11,6 @@ async function fetchRemindersContainingToday() {
     const today = new Date();
 
     const getYearMonthDayOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
-    console.log(getYearMonthDayOfToday);
 
     const reminders = await Reminder.find();
     let foundReminders = [];
@@ -37,14 +38,14 @@ async function fetchRemindersContainingToday() {
 async function fetchTreatmentRemindersByReminderIds(foundReminders) {
   try {
     let foundTreatmentReminders = [];
+    let foundHealthChecks = [];
+
     for (const reminder of foundReminders) {
       const { ReminderId, userId } = reminder;
 
       const treatmentReminder = await TreatmentReminder.findOne({ reminderId: ReminderId });
 
-      const user = await User.findById({ _id: userId }).select('username deviceToken');
-      console.log(treatmentReminder);
-      console.log(user);
+      const user = await User.findById({ _id: userId }).select('username deviceToken')
 
       if (treatmentReminder && user) {
         const combinedInfo = {
@@ -57,15 +58,26 @@ async function fetchTreatmentRemindersByReminderIds(foundReminders) {
           deviceToken: user.deviceToken
         };
         foundTreatmentReminders.push(combinedInfo);
-      } else {
-        return {
-          completed: true,
-          message: "Hiện tại các thành viên gia đình bạn không có lịch",
+      }
+      const healthCheck = await HealthCheck.findOne({ userId });
+
+      if (healthCheck && user) {
+        const combinedInfoHealthCheck = {
+          _id: healthCheck._id,
+          reExaminationDate: healthCheck.reExaminationDate,
+          reExaminationTime: healthCheck.reExaminationTime,
+          reExaminationLocation: healthCheck.reExaminationLocation,
+          nameHospital: healthCheck.nameHospital,
+          userNote: healthCheck.userNote,
+          username: user.username,
+          deviceToken: user.deviceToken
         };
+        foundHealthChecks.push(combinedInfoHealthCheck);
       }
     }
     return {
       foundTreatmentReminders,
+      foundHealthChecks
     };
   } catch (error) {
     console.error('Error fetching treatment reminders by reminder IDs:', error);

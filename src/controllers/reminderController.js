@@ -81,7 +81,9 @@ exports.CreateHealthCheck = async (req, res) => {
 
 exports.EditHealthCheck = async (req, res) => {
   try {
-    const EditHealthCheckReminder = await reminderRepository.EditHealthCheck(req.body);
+    const healthCheckId = req.params.healthCheckId;
+    const newDataHealthCheck = req.body
+    const EditHealthCheckReminder = await reminderRepository.EditHealthCheck(healthCheckId, newDataHealthCheck);
     return res.json(EditHealthCheckReminder);
   } catch (error) {
     console.log('error: ', error);
