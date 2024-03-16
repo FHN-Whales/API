@@ -10,7 +10,7 @@ ReminderRouter.put('/UpdateTreatmentReminders', reminderController.updateTreatme
 ReminderRouter.delete('/DeleteTreatmentReminders/:id', reminderController.deleteTreatmentReminders);
 ReminderRouter.get('/getRemindersTreatmentRemindersByYearMonthDay/:date/:familyId/:userId', reminderController.getRemindersTreatmentRemindersByYearMonthDay);
 ReminderRouter.post('/CreateHealthCheckReminder', reminderController.CreateHealthCheck);
-ReminderRouter.put('/EditHealthCheckReminder', reminderController.EditHealthCheck);
+ReminderRouter.put('/EditHealthCheckReminder/:healthCheckId', reminderController.EditHealthCheck);
 ReminderRouter.delete('/DeleteHealthCheckReminder/:healthCheckId', reminderController.DeleteHealthCheck);
 ReminderRouter.get('/getHealthCheckRemindersByUserId/:familyId/:userId', reminderController.getAllHealthCheckReminderToday);
 ReminderRouter.get('/getHealthCheckRemindersByHealthCheckId/:healthCheckId', reminderController.getHealthCheckReminderById);

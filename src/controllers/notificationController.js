@@ -3,9 +3,13 @@ const cron = require('node-cron');
 const { firebase } = require('../config/firebase/firebase')
 const http = require('http');
 
-exports.sendNotificationsForTodayReminders = async () => {
+
+
+
+
+const sendNotificationsForTodayReminders = async () => {
   try {
-    const { foundTreatmentReminders } = await notificationRepository.fetchRemindersContainingToday();
+    const { foundHealthChecks, foundTreatmentReminders } = await notificationRepository.fetchRemindersContainingToday();
     if (foundTreatmentReminders.length == 0) {
       return {
         completed: true,
@@ -31,6 +35,22 @@ exports.sendNotificationsForTodayReminders = async () => {
       await handleSendNotification(deviceToken, title, body)
       console.log(`Sent notification for treatment reminder at ${treatmentTime}`);
     }
+
+    // Gửi thông báo cho lịch kiểm tra sức khỏe
+    for (const healthCheck of foundHealthChecks) {
+      const { reExaminationDate, reExaminationTime, reExaminationLocation, nameHospital, userNote, userId } = healthCheck;
+      if (reExaminationTime !== now_vietnam.toISOString().slice(11, 16)) {
+        continue;
+      }
+      const { username, deviceToken } = user;
+      const title = 'Health check reminder | Hello ' + `${username}`;
+      const body = `- Re-examination date: ${reExaminationDate}\n- Re-examination time: ${reExaminationTime}\n- Location: ${reExaminationLocation}\n- Hospital: ${nameHospital}\n- Note: ${userNote}`;
+      await sendNotificationToDevice(deviceToken, title, body);
+      await handleSendNotification(deviceToken, title, body)
+      console.log(`Sent notification for health check reminder at ${reExaminationTime}`);
+    }
+
+    console.log('Notification sent successfully.');
 
     console.log('Notification sent successfully.');
   } catch (error) {
@@ -82,3 +102,7 @@ const handleSendNotification = async (deviceToken, title, body) => {
   });
 }
 
+setTimeout(() => {
+  console.log('Timer set. Waiting for 5 minutes before sending notifications.');
+  sendNotificationsForTodayReminders(); 
+}, 1000); 
