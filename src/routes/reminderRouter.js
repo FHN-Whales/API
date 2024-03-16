@@ -13,6 +13,8 @@ ReminderRouter.post('/CreateHealthCheckReminder', reminderController.CreateHealt
 ReminderRouter.put('/EditHealthCheckReminder', reminderController.EditHealthCheck);
 ReminderRouter.delete('/DeleteHealthCheckReminder/:healthCheckId', reminderController.DeleteHealthCheck);
 ReminderRouter.get('/getHealthCheckRemindersByUserId/:familyId/:userId', reminderController.getAllHealthCheckReminderToday);
+ReminderRouter.get('/getHealthCheckRemindersByHealthCheckId/:healthCheckId', reminderController.getHealthCheckReminderById);
+
 
 
 module.exports = ReminderRouter;

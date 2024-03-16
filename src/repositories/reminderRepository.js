@@ -613,14 +613,15 @@ exports.GetHealthCheckReminder = async (familyId, userId) =>{
       };
       if (user[0].role === "Dad" || user[0].role === "Mom") {
         const getAllHealthCheckReminders = await HealthCheck.find({ userId: userId });
+        console.log("getAllHealthCheckReminders",getAllHealthCheckReminders);
         if (getAllHealthCheckReminders.length == 0) {
           return {
             completed: true,
-            message: "Currently your family members do not have a schedule",
+            message: "Currently your family members do not have a schedule1",
           };
         }
         const userReminders = await getAllHealthCheckReminderOfMember(year, month, day, familyId);
-
+        console.log("userReminders",userReminders);
         if(userReminders.length == 0){
           return {
             completed: true,
@@ -693,7 +694,6 @@ const getAllHealthCheckReminderOfMember = async (year, month, day,familyId) => {
   return memberReminder
 };
 
-
 const getHealthCheckFollowUserId = async (year,month,day, userId) => {
   const healthChecks = await HealthCheck.find({ userId: userId });
   const userHealthCheckReminder = [];
@@ -713,6 +713,37 @@ const getHealthCheckFollowUserId = async (year,month,day, userId) => {
     }));
   }
   return userHealthCheckReminder;
+}
+
+exports.GetHealthCheckReminderById = async(healthCheckId)=>{
+  try {
+    if (!healthCheckId) {
+      return {
+        completed: false,
+        message: "HealthCheckId is missing."
+      };
+    }
+
+    const dataHealthCheckById = await HealthCheck.findById(healthCheckId)
+
+    if(!dataHealthCheckById){
+      return {
+        completed: false,
+        message: "HealthCheck not found."
+      };
+    }
+    return {
+        completed: true,
+        message: "Success",
+        dataHealthCheck: dataHealthCheckById 
+    };
+  } catch (error) {
+    console.error('Error getting treatment reminders:', error);
+    return {
+      completed: false,
+      message: "Failed to get treatment reminders."
+    };
+  }
 }
 
 
