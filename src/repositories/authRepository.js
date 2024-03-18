@@ -137,10 +137,6 @@ exports.VerifyCodeEmail = async (familyData) => {
 }
 
 exports.createNewUser = async (data) => {
-  const user = await User.find({
-    familyId: data.familyId,
-    username: data.username
-  });
   if (!data.username) {
     return {
       completed: false,
@@ -173,7 +169,11 @@ exports.createNewUser = async (data) => {
   }
 
 
-
+  const user = await User.find({
+    familyId: data.familyId,
+    username: data.username
+  });
+  
   if (user.length > 0) {
     return {
       completed: false,
