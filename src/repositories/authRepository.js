@@ -137,6 +137,10 @@ exports.VerifyCodeEmail = async (familyData) => {
 }
 
 exports.createNewUser = async (data) => {
+  const user = await User.find({
+    familyId: data.familyId,
+    username: data.username
+  });
   if (!data.username) {
     return {
       completed: false,
@@ -167,6 +171,16 @@ exports.createNewUser = async (data) => {
       message: "Family not found for the provided email"
     };
   }
+
+
+
+  if (user.length > 0) {
+    return {
+      completed: false,
+      message: "This member has been created"
+    };
+  }
+
 
   const saltRounds = 10;
   const hashedPassword = await bcrypt.hash(data.password, saltRounds);
