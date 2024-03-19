@@ -152,48 +152,41 @@ exports.getTreatmentReminderByTreatmentId = async (treatmentId) =>{
     };
   }
 }
-exports.updateTreatmentReminders = async (data) => {
+
+
+
+exports.editTreatmentReminders = async (treatmentId, dataTreatmentReminder) => {
   try {
-    if (!data || Object.keys(data).length === 0) {
+    if (!treatmentId) {
       return {
         completed: false,
-        message: "Data is not provided."
+        message: "treatmentId is missing."
       };
     }
-    const { treatmentReminderId, timeOfDay, treatmentTime, medications } = data;
-    const existingTreatmentReminder = await TreatmentReminder.findById(treatmentReminderId);
+
+    const {timeOfDay, treatmentTime,  medications, noteTreatment} = dataTreatmentReminder;
+    const existingTreatmentReminder = await TreatmentReminder.findById(treatmentId);
     if (!existingTreatmentReminder) {
       return {
         completed: false,
         message: "TreatmentReminder not found."
       };
     }
+  // Update the existing treatment reminder
+  existingTreatmentReminder.timeOfDay = timeOfDay;
+  existingTreatmentReminder.treatmentTime = treatmentTime;
+  existingTreatmentReminder.medications = medications;
+  existingTreatmentReminder.noteTreatment = noteTreatment;
 
-    if (!timeOfDay && !treatmentTime && (!medications || medications.length === 0)) {
-      return {
-        completed: false,
-        message: "No new data to update."
-      };
-    }
+  await existingTreatmentReminder.save();    
 
-    const updateTreatmentReminder = await TreatmentReminder.updateMany({
-      _id: treatmentReminderId,
-    },
-      {
-        $set: {
-          timeOfDay: timeOfDay,
-          treatmentTime: treatmentTime,
-          medications
-        }
-      });
-    if (updateTreatmentReminder) {
-      const updatedData = await TreatmentReminder.findById(treatmentReminderId);
-      return {
-        completed: true,
-        message: "Data has been successfully updated.",
-        data: updatedData
-      };
-    }
+  const updatedData = await TreatmentReminder.findById(treatmentId);
+  return {
+    completed: true,
+    message: "Data has been successfully updated.",
+    data: updatedData
+  };
+    
   } catch (error) {
     console.error('Error when updating data:', error);
     return {
