@@ -2,12 +2,11 @@ const notificationRepository = require('../repositories/notificationRepository')
 const cron = require('node-cron');
 const { firebase } = require('../config/firebase/firebase')
 const http = require('http');
+const NotificationsTreatment = require('../models/notificationTreatmentModel')
 
+const NotificationsHealth = require('../models/notificationHealthModel')
 
-
-
-
-const sendNotificationsForTodayReminders = async () => {
+exports.sendNotificationsForTodayReminders = async () => {
   try {
     const { foundHealthChecks, foundTreatmentReminders } = await notificationRepository.fetchRemindersContainingToday();
     if (foundTreatmentReminders.length == 0) {
@@ -19,9 +18,22 @@ const sendNotificationsForTodayReminders = async () => {
     const now = new Date();
     const now_vietnam = new Date(now.getTime() + 7 * 3600000);
     for (const treatmentReminder of foundTreatmentReminders) {
-      const { _id, timeOfDay, treatmentTime, medications, noteTreatment, username, deviceToken } = treatmentReminder;
+      const { _id, timeOfDay, treatmentTime, medications, noteTreatment, username, deviceToken, userId } = treatmentReminder;
       if (treatmentTime !== now_vietnam.toISOString().slice(11, 16)) {
         continue;
+      }
+      try {
+        await NotificationsTreatment.create({
+          treatmentTime: treatmentTime,
+          medications: medications,
+          noteTreatment: noteTreatment,
+          username: username,
+          deviceToken: deviceToken,
+          userId: userId
+        });
+        console.log(`Saved data for treatment reminder at ${treatmentTime} to the notificationTreatment table.`);
+      } catch (error) {
+        console.error('Error saving data to notificationTreatment table:', error);
       }
       let medicationsString = '';
       for (const medication of medications) {
@@ -36,21 +48,32 @@ const sendNotificationsForTodayReminders = async () => {
       console.log(`Sent notification for treatment reminder at ${treatmentTime}`);
     }
 
-    // Gửi thông báo cho lịch kiểm tra sức khỏe
     for (const healthCheck of foundHealthChecks) {
-      const { reExaminationDate, reExaminationTime, reExaminationLocation, nameHospital, userNote, userId } = healthCheck;
+      const { reExaminationDate, reExaminationTime, reExaminationLocation, nameHospital, userNote, username, deviceToken, userId } = healthCheck;
       if (reExaminationTime !== now_vietnam.toISOString().slice(11, 16)) {
         continue;
       }
-      const { username, deviceToken } = user;
+      try {
+        await NotificationsHealth.create({
+          reExaminationDate: reExaminationDate,
+          reExaminationTime: reExaminationTime,
+          reExaminationLocation: reExaminationLocation,
+          nameHospital: nameHospital,
+          userNote: userNote,
+          username: username,
+          deviceToken: deviceToken,
+          userId: userId
+        });
+        console.log(`Saved data for treatment reminder at ${reExaminationTime} to the notificationTreatment table.`);
+      } catch (error) {
+        console.error('Error saving data to notificationTreatment table:', error);
+      }
       const title = 'Health check reminder | Hello ' + `${username}`;
       const body = `- Re-examination date: ${reExaminationDate}\n- Re-examination time: ${reExaminationTime}\n- Location: ${reExaminationLocation}\n- Hospital: ${nameHospital}\n- Note: ${userNote}`;
       await sendNotificationToDevice(deviceToken, title, body);
       await handleSendNotification(deviceToken, title, body)
       console.log(`Sent notification for health check reminder at ${reExaminationTime}`);
     }
-
-    console.log('Notification sent successfully.');
 
     console.log('Notification sent successfully.');
   } catch (error) {
@@ -102,7 +125,16 @@ const handleSendNotification = async (deviceToken, title, body) => {
   });
 }
 
-setTimeout(() => {
-  console.log('Timer set. Waiting for 5 minutes before sending notifications.');
-  sendNotificationsForTodayReminders(); 
-}, 1000); 
+exports.getNotifications = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const GetNottifications = await notificationRepository.getNottifications(userId);
+    return res.json(GetNottifications);
+  } catch (error) {
+    console.log('error: ', error);
+    return res.status(500).json({ error: error.message })
+  }
+}
+
+
+
