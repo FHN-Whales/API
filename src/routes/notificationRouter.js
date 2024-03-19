@@ -3,7 +3,7 @@ const express = require('express');
 
 const NotificationRouter = express.Router();
 
-NotificationRouter.get('/getNotifications', notificationController.getNotifications);
+NotificationRouter.get('/getNotifications/:userId', notificationController.getNotifications);
 
 
 

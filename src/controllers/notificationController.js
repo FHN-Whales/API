@@ -136,5 +136,7 @@ exports.getNotifications = async (req, res) => {
   }
 }
 
+// setTimeout(sendNotificationsForTodayReminders, 1000);
+
 
 
