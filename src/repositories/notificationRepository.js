@@ -3,6 +3,8 @@ const Reminder = require("../models/ReminderModel")
 const TreatmentReminder = require("../models/TreatmentReminderModel")
 const User = require('../models/userModel');
 const HealthCheck = require('../models/healthCheckReminderModel');
+const NotificationsTreatment = require('../models/notificationTreatmentModel')
+const NotificationsHealth = require('../models/notificationHealthModel')
 
 
 async function fetchRemindersContainingToday() {
@@ -55,7 +57,8 @@ async function fetchTreatmentRemindersByReminderIds(foundReminders) {
           medications: treatmentReminder.medications,
           noteTreatment: treatmentReminder.noteTreatment,
           username: user.username,
-          deviceToken: user.deviceToken
+          deviceToken: user.deviceToken,
+          userId: user.userId
         };
         foundTreatmentReminders.push(combinedInfo);
       }
@@ -70,11 +73,13 @@ async function fetchTreatmentRemindersByReminderIds(foundReminders) {
           nameHospital: healthCheck.nameHospital,
           userNote: healthCheck.userNote,
           username: user.username,
-          deviceToken: user.deviceToken
+          deviceToken: user.deviceToken,
+          userId: user.userId
         };
         foundHealthChecks.push(combinedInfoHealthCheck);
       }
     }
+
     return {
       foundTreatmentReminders,
       foundHealthChecks
@@ -85,6 +90,29 @@ async function fetchTreatmentRemindersByReminderIds(foundReminders) {
   }
 }
 
+exports.getNottifications = async (userId) => {
+  try {
+    const treatmentNotifications = await NotificationsTreatment.find({ userId: userId });
+
+    const healthNotifications = await NotificationsHealth.find({ userId: userId });
+
+    const combinedNotifications = [...treatmentNotifications, ...healthNotifications];
+    if (combinedNotifications.length === 0) {
+      return {
+        completed: true,
+        message: "You currently have no calendars that need reminders"
+      }
+    }
+    return {
+      completed: true,
+      message: "You currently have no calendars that need reminders",
+      dataNotifications: combinedNotifications
+    }
+  } catch (error) {
+    console.error('Error fetching notifications:', error);
+    throw error;
+  }
+}
 
 module.exports = {
   fetchRemindersContainingToday

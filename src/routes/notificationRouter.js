@@ -3,7 +3,7 @@ const express = require('express');
 
 const NotificationRouter = express.Router();
 
-// NotificationRouter.get('/gettimenow', notificationController.gettimenow);
+NotificationRouter.get('/getNotifications', notificationController.getNotifications);
 
 
 
