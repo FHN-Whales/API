@@ -6,8 +6,7 @@ const NotificationsTreatment = require('../models/notificationTreatmentModel')
 
 const NotificationsHealth = require('../models/notificationHealthModel')
 
-
-const sendNotificationsForTodayReminders = async () => {
+exports.sendNotificationsForTodayReminders = async () => {
   try {
     const { foundHealthChecks, foundTreatmentReminders } = await notificationRepository.fetchRemindersContainingToday();
     if (foundTreatmentReminders.length == 0) {
