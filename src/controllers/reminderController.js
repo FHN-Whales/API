@@ -21,9 +21,11 @@ exports.GetTreatmentReminderByTreatmentId = async (req, res) => {
   }
 }
 
-exports.updateTreatmentReminders = async (req, res) => {
+exports.EditTreatmentReminders = async (req, res) => {
   try {
-    const updateTreatmentReminders = await reminderRepository.updateTreatmentReminders(req.body);
+    const treatmentId = req.params.treatmentId
+    const dataTreatmentReminder = req.body
+    const updateTreatmentReminders = await reminderRepository.editTreatmentReminders(treatmentId, dataTreatmentReminder);
     return res.json(updateTreatmentReminders)
   } catch (error) {
     console.log('error', error);
