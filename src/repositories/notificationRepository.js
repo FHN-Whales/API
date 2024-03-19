@@ -79,8 +79,8 @@ async function fetchTreatmentRemindersByReminderIds(foundReminders) {
         foundHealthChecks.push(combinedInfoHealthCheck);
       }
     }
-    console.log("foundTreatmentReminders:",foundTreatmentReminders);
-    console.log("foundTreatmentReminders:",foundHealthChecks);
+    console.log("foundTreatmentReminders:", foundTreatmentReminders);
+    console.log("foundTreatmentReminders:", foundHealthChecks);
 
     return {
       foundTreatmentReminders,
@@ -92,13 +92,17 @@ async function fetchTreatmentRemindersByReminderIds(foundReminders) {
   }
 }
 
-exports.getNottifications = async (userId) => {
+const getNotifications = async (userId) => {
   try {
     const treatmentNotifications = await NotificationsTreatment.find({ userId: userId });
 
     const healthNotifications = await NotificationsHealth.find({ userId: userId });
 
-    const combinedNotifications = [...treatmentNotifications, ...healthNotifications];
+
+    const combinedNotifications = {
+      treatmentNotifications: [...treatmentNotifications],
+      healthNotifications: [...healthNotifications]
+    };
     if (combinedNotifications.length === 0) {
       return {
         completed: true,
@@ -117,6 +121,7 @@ exports.getNottifications = async (userId) => {
 }
 
 module.exports = {
-  fetchRemindersContainingToday
+  fetchRemindersContainingToday,
+  getNotifications
 };
 

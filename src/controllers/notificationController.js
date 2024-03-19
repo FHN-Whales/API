@@ -128,7 +128,7 @@ const handleSendNotification = async (deviceToken, title, body) => {
 exports.getNotifications = async (req, res) => {
   try {
     const userId = req.params.userId;
-    const GetNottifications = await notificationRepository.getNottifications(userId);
+    const GetNottifications = await notificationRepository.getNotifications(userId);
     return res.json(GetNottifications);
   } catch (error) {
     console.log('error: ', error);
