@@ -10,6 +10,17 @@ exports.CreateTreatmentReminders = async (req, res) => {
   }
 }
 
+exports.GetTreatmentReminderByTreatmentId = async (req, res) => {
+  try {
+    const treatmentId = req.params.treatmentId;
+    const getTreatmentReminderByTreatmentId = await reminderRepository.getTreatmentReminderByTreatmentId(treatmentId);
+    return res.json(getTreatmentReminderByTreatmentId)
+  } catch (error) {
+    console.log('error', error);
+    return res.status(500).json({ error: error.message });
+  }
+}
+
 exports.updateTreatmentReminders = async (req, res) => {
   try {
     const updateTreatmentReminders = await reminderRepository.updateTreatmentReminders(req.body);
