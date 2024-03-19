@@ -58,7 +58,7 @@ async function fetchTreatmentRemindersByReminderIds(foundReminders) {
           noteTreatment: treatmentReminder.noteTreatment,
           username: user.username,
           deviceToken: user.deviceToken,
-          userId: user.userId
+          userId: user._Id
         };
         foundTreatmentReminders.push(combinedInfo);
       }
@@ -74,7 +74,7 @@ async function fetchTreatmentRemindersByReminderIds(foundReminders) {
           userNote: healthCheck.userNote,
           username: user.username,
           deviceToken: user.deviceToken,
-          userId: user.userId
+          userId: user._Id
         };
         foundHealthChecks.push(combinedInfoHealthCheck);
       }
