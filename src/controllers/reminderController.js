@@ -32,24 +32,40 @@ exports.deleteTreatmentReminders = async (req, res) => {
 }
 
 
-exports.getAllTreatmentReminders = async (req, res) => {
-  try {
-    const getAllTreatmentReminder = await reminderRepository.getAllTreatmentReminders(req.params.id);
-    return res.json(getAllTreatmentReminder)
-  } catch (error) {
-    console.log('error', error);
-    return res.status(500).json({ error: error.message });
-  }
-}
+// exports.getAllTreatmentReminders = async (req, res) => {
+//   try {
+//     const getAllTreatmentReminder = await reminderRepository.getAllTreatmentReminders(req.params.id);
+//     return res.json(getAllTreatmentReminder)
+//   } catch (error) {
+//     console.log('error', error);
+//     return res.status(500).json({ error: error.message });
+//   }
+// }
 
 exports.getTreatmentRemindersByUserId = async (req, res) => {
   try {
-    const getTreatmentReminderByUserId = await reminderRepository.getTreatmentRemindersByUserId(req.params.id);
+    const familyId = req.params.familyId;
+    const userId = req.params.userId;
+    const getTreatmentReminderByUserId = await reminderRepository.getTreatmentRemindersByUserId(familyId,userId);
     return res.json(getTreatmentReminderByUserId)
   } catch (error) {
     console.log('error', error);
     return res.status(500).json({ error: error.message });
   }
 }
+
+exports.getRemindersTreatmentRemindersByYearMonthDay = async (req, res) => {
+  try {
+    const date = req.params.date;
+    const familyId = req.params.familyId;
+    const userId = req.params.userId;
+    const getTreatmentReminderByUserId = await reminderRepository.getReminderTreatmentRemindersByYearMonthDay(date, familyId, userId);
+    return res.json(getTreatmentReminderByUserId)
+  } catch (error) {
+    console.log('error', error);
+    return res.status(500).json({ error: error.message });
+  }
+}
+
 
 

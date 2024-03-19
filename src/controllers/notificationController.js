@@ -1,26 +1,32 @@
 const notificationRepository = require('../repositories/notificationRepository');
 const cron = require('node-cron');
 const { firebase } = require('../config/firebase/firebase')
-exports.gettimenow = async (req, res) => {
+
+
+exports.sendNotificationsForTodayReminders = async () => {
   try {
-    const sendNotification = await notificationRepository.fetchRemindersContainingToday();
-    res.status(200).json(sendNotification);
-  } catch (error) {
-    console.error('Error sending notification:', error);
-    res.status(500).json({ error: 'Failed to send notification' });
-  }
-}
-
-async function sendNotificationsForTodayReminders() {
-  try {
-    const { treatmentReminders } = await notificationRepository.fetchRemindersContainingToday();
-
-    for (const treatmentReminder of treatmentReminders) {
-      const { _id, timeOfDay, treatmentTime, medications } = treatmentReminder;
-
-      const deviceToken = 'fSdqVbBPR7CJJIQCVs-bs5:APA91bEZbUEw9RKld5LExYe9lSpVwd4eIyebSFQOVLzRsaWikT8pmz-xfGYsMXacaBTik-r5dijpk6Y9fS4jATMQ4eTPaXQkurxjy90gHNhPFHxpWqen-60qa3o-6w-I0tSaLI56NUd7'; 
-      const title = 'Treatment reminder';
-      const body = `Treatment time: ${treatmentTime}`;
+    const { foundTreatmentReminders } = await notificationRepository.fetchRemindersContainingToday();
+    if (foundTreatmentReminders.length == 0) {
+      return {
+        completed: true,
+        message: "Hiện tại các thành viên gia đình bạn không có lịch"
+      };
+    }
+    const now = new Date();
+    const now_vietnam = new Date(now.getTime() + 7 * 3600000);
+    for (const treatmentReminder of foundTreatmentReminders) {
+      const { _id, timeOfDay, treatmentTime, medications, noteTreatment, username, deviceToken } = treatmentReminder;
+      if (treatmentTime !== now_vietnam.toISOString().slice(11, 16)) {
+        continue;
+      }
+      let medicationsString = '';
+      for (const medication of medications) {
+        medicationsString += `   + ${medication.medicationName}: ${medication.dosage}, \n`;
+      }
+      medicationsString = medicationsString.slice(0, -3);
+      console.log(medicationsString);
+      const title = 'Treatment reminder | Hello ' + `${username}`;
+      const body = `- Drinking time: ${treatmentTime}\n${medicationsString}\n- Note: ${noteTreatment}`;
       await sendNotificationToDevice(deviceToken, title, body);
       console.log(`Sent notification for treatment reminder at ${treatmentTime}`);
     }
@@ -32,16 +38,9 @@ async function sendNotificationsForTodayReminders() {
 }
 
 
-cron.schedule('00 23 * * *', () => {
-  sendNotificationsForTodayReminders();
-  console.log('Công việc được lên lịch để gửi thông báo cho những nhắc nhở trong ngày.');
-});
-
-
-
 async function sendNotificationToDevice(deviceToken, title, body) {
   try {
-    console.log("deviceToken: ",deviceToken);
+    console.log("deviceToken: ", deviceToken);
     const message = {
       notification: {
         title: title,
