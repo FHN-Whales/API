@@ -122,7 +122,36 @@ exports.CreateTreatmentReminders = async (data) => {
   }
 }
 
+exports.getTreatmentReminderByTreatmentId = async (treatmentId) =>{
+  try {
+    if (!treatmentId) {
+      return {
+        completed: false,
+        message: "treatmentId is missing."
+      };
+    }
 
+    const dataTreatmentReminderById = await TreatmentReminder.findById(treatmentId)
+
+    if(!dataTreatmentReminderById){
+      return {
+        completed: false,
+        message: "Treatment not found."
+      };
+    }
+    return {
+        completed: true,
+        message: "Success",
+        dataTreatment: dataTreatmentReminderById 
+    };
+  } catch (error) {
+    console.error('Error getting treatment reminders:', error);
+    return {
+      completed: false,
+      message: "Failed to get treatment reminders."
+    };
+  }
+}
 exports.updateTreatmentReminders = async (data) => {
   try {
     if (!data || Object.keys(data).length === 0) {
