@@ -36,7 +36,8 @@ exports.EditTreatmentReminders = async (req, res) => {
 
 exports.deleteTreatmentReminders = async (req, res) => {
   try {
-    const deleteTreatmentReminder = await reminderRepository.deleteTreatmentReminder(req.params.id);
+    const treatmentReminderId = req.params.treatmentReminderId
+    const deleteTreatmentReminder = await reminderRepository.deleteTreatmentReminder(treatmentReminderId);
     return res.json(deleteTreatmentReminder)
   } catch (error) {
     console.log('error', error);
