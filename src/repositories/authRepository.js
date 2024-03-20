@@ -173,7 +173,7 @@ exports.createNewUser = async (data) => {
     familyId: data.familyId,
     username: data.username
   });
-  
+
   if (user.length > 0) {
     return {
       completed: false,
@@ -305,17 +305,11 @@ exports.SignInRoleUser = async (Data) => {
         break;
       }
     }
-    const userId = foundUser._id;
-    const deviceToken = Data.deviceToken;
-
-    const result = await saveDeviceTokenToUser(userId, deviceToken);
-
-    console.log("userId,,,", userId);
-    console.log("deviceToken,,,", deviceToken);
-
 
     if (foundUser) {
-      console.log(foundUser);
+      const userId = foundUser._id;
+      const deviceToken = Data.deviceToken;
+      const result = await saveDeviceTokenToUser(userId, deviceToken);
       return {
         completed: true,
         userId: foundUser._id,
