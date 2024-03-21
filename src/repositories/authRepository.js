@@ -171,7 +171,7 @@ exports.createNewUser = async (data) => {
 
   const user = await User.find({
     familyId: data.familyId,
-    role: data.role
+    username: data.username
   });
 
   if (user.length > 0) {
