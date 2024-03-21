@@ -207,18 +207,27 @@ exports.deleteTreatmentReminder = async (treatmentReminderId) => {
       };
     }
     const existingTreatmentReminder = await TreatmentReminder.findById(treatmentReminderId);
+    console.log("existingTreatmentReminder:",existingTreatmentReminder);
+
     if (!existingTreatmentReminder) {
       return {
         completed: false,
         message: "TreatmentReminder not found."
       };
+    }else{
+      await TreatmentReminder.deleteOne({ _id: treatmentReminderId });
+      const { reminderId } = existingTreatmentReminder;
+      const remindersWithSameId = await TreatmentReminder.find({ reminderId });
+      console.log("reminderId:",reminderId);
+      if(remindersWithSameId.length == 0){
+        await Reminder.deleteOne({ _id: reminderId });
+      }
+      return {
+        completed: true,
+        message: "TreatmentReminder has been successfully deleted.",
+      };
     }
-    await TreatmentReminder.deleteOne({ _id: treatmentReminderId });
 
-    return {
-      completed: true,
-      message: "TreatmentReminder has been successfully deleted.",
-    };
   } catch (error) {
     console.error('Error when deleting data:', error);
     return {
