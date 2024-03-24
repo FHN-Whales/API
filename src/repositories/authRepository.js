@@ -261,6 +261,51 @@ exports.SignInFamily = async (familyData) => {
   }
 }
 
+
+exports.LoginWithGoogle = async (data) => {
+  const familyInfo = data;
+  console.log("familyInfo.email", familyInfo.email);
+  let familyData = {
+    "username": familyInfo.name,
+    "avatar": familyInfo.photo
+  };
+  const existingFamily = await Family.findOne({ email: familyInfo.email });
+  console.log("existingFamily:", existingFamily);
+  if (existingFamily) {
+    await Family.findByIdAndUpdate(existingFamily._id, { email: existingFamily.email, })
+    console.log("existingFamily.id", existingFamily._id);
+    const memberFamily = await User.findOne({ familyId: existingFamily._id })
+    if (memberFamily) {
+      return {
+        completed: true,
+        message: "Sign in with google successfully",
+        familyId: existingFamily._id
+      }
+    }
+    return {
+      completed: true,
+      message: "Sign in with google successfully11",
+      familyId: existingFamily._id,
+      isMember: false,
+      familyData: familyData
+    }
+  } else {
+    const newFamily = new Family({
+      email: familyInfo.email,
+      status: true
+    })
+    await newFamily.save();
+    const newFamilyId = newFamily._id;
+    return {
+      completed: true,
+      message: "Sign in with google successfully",
+      familyId: newFamilyId,
+      isMember: false,
+      familyData: familyData
+    }
+  }
+
+}
 exports.SignInRoleUser = async (Data) => {
   const familyId = Data.familyId
   const user_role = Data.role

@@ -23,24 +23,34 @@ exports.createNewUser = async (req, res) => {
   try {
     const createNewUser = await authRepository.createNewUser(req.body)
     return res.json(createNewUser)
-  } catch  (error){
+  } catch (error) {
     return res.status(500).json({ error: error.message });
   }
 }
 
-exports.SignInFamily = async(req, res) =>{
-  try{
+exports.SignInFamily = async (req, res) => {
+  try {
     const SignInFamily = await authRepository.SignInFamily(req.body);
     return res.json(SignInFamily)
-  }catch (error){
+  } catch (error) {
     return res.status(500).json({ error: error.message });
   }
 }
-exports.SignInRoleUser = async(req, res) =>{
-  try{
+
+exports.handleLoginWithGoogle = async (req, res) => {
+  try {
+    const LoginWithGoogle = await authRepository.LoginWithGoogle(req.body);
+    return res.json(LoginWithGoogle)
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+}
+
+exports.SignInRoleUser = async (req, res) => {
+  try {
     const SignInRoleUser = await authRepository.SignInRoleUser(req.body);
     return res.json(SignInRoleUser)
-  }catch (error){
+  } catch (error) {
     return res.status(500).json({ error: error.message });
   }
 }
