@@ -101,6 +101,8 @@ async function sendNotificationToDevice(deviceToken, title, body) {
     throw error;
   }
 }
+
+
 const handleSendNotification = async (deviceToken, title, body) => {
   const request = require('request');
   const options = {

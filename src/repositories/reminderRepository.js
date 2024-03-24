@@ -238,7 +238,7 @@ exports.deleteTreatmentReminder = async (treatmentReminderId) => {
 }
 
 exports.getReminderTreatmentRemindersByYearMonthDay = async (date, familyId, userId) => {
-  let [year, month, day] = date.split('-');
+  let [yearCurrently, monthCurrently, dayCurrently] = date.split('-');
   if (!userId) {
     return {
       completed: false,
@@ -267,18 +267,21 @@ exports.getReminderTreatmentRemindersByYearMonthDay = async (date, familyId, use
           message: "Currently your family members do not have a schedule",
         };
       }
-      const userReminders = await getAllRemindersOfMember(year, month, day, familyId);
-      if(userReminders.length == 0){
-        return {
-          completed: true,
-          message: "Currently your family members do not have a schedule",
-        };
-      }
-      return {
-        completed: true,
-        message: "Success",
-        dataTreatmentSearch: userReminders
-      };
+      const userReminders = await getAllRemindersOfMember(yearCurrently, monthCurrently, dayCurrently, familyId);
+      // console.log("userReminders:",userReminders);
+
+
+      // if(userReminders.length == 0){
+      //   return {
+      //     completed: true,
+      //     message: "Currently your family members do not have a schedule",
+      //   };
+      // }
+      // return {
+      //   completed: true,
+      //   message: "Success",
+      //   dataTreatmentSearch: userReminders
+      // };
     }
     if (user[0].role !== "Dad" ||user[0].role !== "Mom") {
       const checkUserInReminder = await Reminder.find({ userId: userId });
@@ -288,23 +291,25 @@ exports.getReminderTreatmentRemindersByYearMonthDay = async (date, familyId, use
           message: "You currently have no calendars that need reminders"
         }
       };
-      const userReminders = await getReminderFollowUserId(year,month,day, userId);
-      if(userReminders.length == 0 ){
-        return {
-          completed: true,
-          message: "You currently have no calendars that need reminders"
-        };
-      }
-      return {
-        completed: true,
-        message: "Success",
-        dataTreatmentSearch: userReminders
-      };
+      const userReminders = await getReminderFollowUserId(yearCurrently, monthCurrently, dayCurrently, userId);
+
+
+      // if(userReminders.length == 0 ){
+      //   return {
+      //     completed: true,
+      //     message: "You currently have no calendars that need reminders"
+      //   };
+      // }
+      // return {
+      //   completed: true,
+      //   message: "Success",
+      //   dataTreatmentSearch: userReminders
+      // };
     }
-    return {
-      completed: false,
-      message: "User is not authorized."
-    };
+    // return {
+    //   completed: false,
+    //   message: "User is not authorized."
+    // };
   } catch (error) {
     console.error(error);
   }
@@ -312,9 +317,6 @@ exports.getReminderTreatmentRemindersByYearMonthDay = async (date, familyId, use
 
 exports.getTreatmentRemindersByUserId = async (familyId, userId) => {
   try {
-    console.log(familyId);
-    console.log(userId);
-
     if (!userId) {
       return {
         completed: false,
@@ -400,7 +402,7 @@ exports.getTreatmentRemindersByUserId = async (familyId, userId) => {
   }
 }
 
-const getAllRemindersOfMember = async (year, month, day,familyId) => {
+const getAllRemindersOfMember = async (yearCurrently, monthCurrently, dayCurrently, familyId) => {
   const members = await User.find({ familyId: familyId });
   const memberReminder = [];
   for (let member of members) {
@@ -412,37 +414,55 @@ const getAllRemindersOfMember = async (year, month, day,familyId) => {
   const foundTreatmentReminders = [];
   for (let reminders of memberReminder) {
     for (let reminder of reminders) {
-      const startDate = new Date(reminder.startDate.getFullYear(), reminder.startDate.getMonth(), reminder.startDate.getDate());
-      const endDate = new Date(reminder.endDate.getFullYear(), reminder.endDate.getMonth(), reminder.endDate.getDate());
-      const targetDate = new Date(year, month - 1, day);
-      if (startDate <= targetDate && targetDate <= endDate) {
-        const treatmentReminders = await TreatmentReminder.find({ reminderId: reminder._id });
-        const user = await User.findById(reminder.userId).select("username")
-        foundTreatmentReminders.push({ user, treatmentInfo: treatmentReminders });
-      }
+      const startDate= new Date(reminder.startDate);
+      const dateString = startDate.toISOString().split('T')[0]; 
+      const [yearDb, monthDb, dayDb] = dateString.split('-').map(Number); 
+      console.log("yearDb_START:",yearDb);
+      console.log("monthDb_START:",monthDb);
+      console.log("dayDb_START:",dayDb);
+
+
+
+
+      // if (startDate <= targetDate && targetDate <= endDate) {
+      //   const treatmentReminders = await TreatmentReminder.find({ reminderId: reminder._id });
+      //   const user = await User.findById(reminder.userId).select("username")
+      //   foundTreatmentReminders.push({ user, treatmentInfo: treatmentReminders });
+      // }
     }
   }
   return foundTreatmentReminders
 };
 
-const getReminderFollowUserId = async (year,month,day, userId) => {
+const getReminderFollowUserId = async (yearCurrently, monthCurrently, dayCurrently, userId) => {
 
   const userReminder = await Reminder.find({ userId: userId });
  
   const foundTreatmentReminders = [];
+  const startDate= new Date(userReminder[0].startDate);
+  const endDate= new Date(userReminder[0].endDate);
 
-  const startDate = new Date(userReminder[0].startDate.getFullYear(), userReminder[0].startDate.getMonth(), userReminder[0].startDate.getDate());
-  const endDate = new Date(userReminder[0].endDate.getFullYear(), userReminder[0].endDate.getMonth(), userReminder[0].endDate.getDate());
-  const targetDate = new Date(year, month - 1, day);
-  console.log(startDate);
-  console.log(endDate);
-  console.log(targetDate);
-  console.log();
-  if (startDate <= targetDate && targetDate <= endDate) {
-    const treatmentReminders = await TreatmentReminder.find({ reminderId: userReminder[0]._id });
-    const user = await User.findById(userReminder[0].userId).select("username")
-    foundTreatmentReminders.push({ user, treatmentInfo: treatmentReminders });
-  }
+  const startDateString = startDate.toISOString().split('T')[0]; 
+  const endDateString = endDate.toISOString().split('T')[0]; 
+
+  const [yearDbStart, monthDbStart, dayDbStart] = startDateString.split('-').map(Number); 
+  const [yearDbEnd, monthDbEnd, dayDbEnd] = endDateString.split('-').map(Number); 
+
+  console.log("yearDbStart:",yearDbStart);
+  console.log("monthDbStart:",monthDbStart);
+  console.log("dayDbStart:",dayDbStart);
+
+  
+  console.log("yearDbEnd:",yearDbEnd);
+  console.log("monthDbEnd:",monthDbEnd);
+  console.log("dayDbEnd:",dayDbEnd);
+
+
+  // if () {
+  //   const treatmentReminders = await TreatmentReminder.find({ reminderId: userReminder[0]._id });
+  //   const user = await User.findById(userReminder[0].userId).select("username")
+  //   foundTreatmentReminders.push({ user, treatmentInfo: treatmentReminders });
+  // }
   return foundTreatmentReminders;
 }
 
