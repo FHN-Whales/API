@@ -284,7 +284,7 @@ exports.LoginWithGoogle = async (data) => {
     }
     return {
       completed: true,
-      message: "Sign in with google successfully11",
+      message: "Sign in with google successfully",
       familyId: existingFamily._id,
       isMember: false,
       familyData: familyData
