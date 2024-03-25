@@ -410,7 +410,7 @@ const getAllRemindersOfMember = async (yearCurrently, monthCurrently, dayCurrent
   for (let member of members) {
     let userId = member._id;
     let reminders_member = await Reminder.find({ userId: userId });
-    console.log("reminders_member",reminders_member);
+    // console.log("reminders_member",reminders_member);
     let healthCheck_members = await HealthCheck.find({ userId: userId });
 
     if(healthCheck_members.length !=0){
@@ -431,7 +431,7 @@ const getAllRemindersOfMember = async (yearCurrently, monthCurrently, dayCurrent
     }
   }
 
-  console.log("memberTreatmentReminder",memberTreatmentReminder);
+  // console.log("memberTreatmentReminder",memberTreatmentReminder);
   const foundTreatmentReminders = [];
   const foundHealthCheckReminders = [];
 
@@ -446,32 +446,32 @@ const getAllRemindersOfMember = async (yearCurrently, monthCurrently, dayCurrent
       const end_dateString = endDate.toISOString().split('T')[0]; 
       const [yearDb_End, monthDb_End, dayDb_End] = end_dateString.split('-').map(Number); 
 
-      console.log("start_dateString",start_dateString);
-      if(monthDb_Start == monthCurrently){
+      // console.log("start_dateString",start_dateString);
+      if(yearCurrently >= yearDb_End){
           console.log("adsgjasdhjhd13123123");
       }
-      console.log("yearDb_Start:",yearDb_Start);
-      console.log("monthDb_Start:",monthDb_Start);
-      console.log("dayDb_Start:",dayDb_Start);
+      // console.log("yearDb_Start:",yearDb_Start);
+      // console.log("monthDb_Start:",monthDb_Start);
+      // console.log("dayDb_Start:",dayDb_Start);
 
       
-      console.log("yearDb_End:",yearDb_End);
-      console.log("monthDb_End:",monthDb_End);
-      console.log("dayDb_End:",dayDb_End);
+      // console.log("yearDb_End:",yearDb_End);
+      // console.log("monthDb_End:",monthDb_End);
+      // console.log("dayDb_End:",dayDb_End);
 
 
-      console.log("yearCurrently:",yearCurrently);
-      console.log("monthCurrently:",monthCurrently);
-      console.log("dayCurrently:",dayCurrently);
+      // console.log("yearCurrently:",yearCurrently);
+      // console.log("monthCurrently:",monthCurrently);
+      // console.log("dayCurrently:",dayCurrently);
 
       if (yearDb_Start <= yearCurrently && 
         monthDb_Start <= monthCurrently && 
         dayDb_Start <= dayCurrently && 
-        yearCurrently >= yearDb_End && 
-        monthCurrently >= monthDb_End && 
-        dayCurrently >= dayDb_End) 
+        yearCurrently <= yearDb_End && 
+        monthCurrently <= monthDb_End && 
+        dayCurrently <= dayDb_End) 
         {
-          console.log("đâsdasdasdasd");
+        console.log("đâsdasdasdasd");
         const treatmentReminders = await TreatmentReminder.find({ reminderId: reminder._id });
         const user = await User.findById(reminder.userId).select("username")
         foundTreatmentReminders.push({ user, treatmentInfo: treatmentReminders });

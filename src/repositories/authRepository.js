@@ -193,6 +193,7 @@ exports.createNewUser = async (data) => {
     avatar: data.avatar,
     dateOfBirth: data.dateOfBirth,
     gender: data.gender,
+    deviceToken: data.deviceToken
   });
 
   try {
