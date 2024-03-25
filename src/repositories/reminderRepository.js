@@ -268,20 +268,20 @@ exports.getRemindersByYearMonthDay = async (date, familyId, userId) => {
         };
       }
       const userReminders = await getAllRemindersOfMember(yearCurrently, monthCurrently, dayCurrently, familyId);
-      // console.log("userReminders:",userReminders);
+      console.log("userReminders:",userReminders);
 
 
-      // if(userReminders.length == 0){
-      //   return {
-      //     completed: true,
-      //     message: "Currently your family members do not have a schedule",
-      //   };
-      // }
-      // return {
-      //   completed: true,
-      //   message: "Success",
-      //   dataTreatmentSearch: userReminders
-      // };
+      if(userReminders.length == 0){
+        return {
+          completed: true,
+          message: "Currently your family members do not have a schedule",
+        };
+      }
+      return {
+        completed: true,
+        message: "Success",
+        dataTreatmentSearch: userReminders
+      };
     }
     if (user[0].role !== "Dad" ||user[0].role !== "Mom") {
       const checkUserInReminder = await Reminder.find({ userId: userId });
@@ -294,22 +294,22 @@ exports.getRemindersByYearMonthDay = async (date, familyId, userId) => {
       const userReminders = await getReminderFollowUserId(yearCurrently, monthCurrently, dayCurrently, userId);
 
 
-      // if(userReminders.length == 0 ){
-      //   return {
-      //     completed: true,
-      //     message: "You currently have no calendars that need reminders"
-      //   };
-      // }
-      // return {
-      //   completed: true,
-      //   message: "Success",
-      //   dataTreatmentSearch: userReminders
-      // };
+      if(userReminders.length == 0 ){
+        return {
+          completed: true,
+          message: "You currently have no calendars that need reminders"
+        };
+      }
+      return {
+        completed: true,
+        message: "Success",
+        dataTreatmentSearch: userReminders
+      };
     }
-    // return {
-    //   completed: false,
-    //   message: "User is not authorized."
-    // };
+    return {
+      completed: false,
+      message: "User is not authorized."
+    };
   } catch (error) {
     console.error(error);
   }
@@ -405,12 +405,11 @@ exports.getTreatmentRemindersByUserId = async (familyId, userId) => {
 const getAllRemindersOfMember = async (yearCurrently, monthCurrently, dayCurrently, familyId) => {
   const members = await User.find({ familyId: familyId });
   const memberTreatmentReminder = [];
-  const memberHealthCheckReminder = [];
+  const foundHealthCheckReminders = [];
 
   for (let member of members) {
     let userId = member._id;
     let reminders_member = await Reminder.find({ userId: userId });
-    // console.log("reminders_member",reminders_member);
     let healthCheck_members = await HealthCheck.find({ userId: userId });
 
     if(healthCheck_members.length !=0){
@@ -422,7 +421,8 @@ const getAllRemindersOfMember = async (yearCurrently, monthCurrently, dayCurrent
           monthHealthCheck == monthCurrently && 
           dayHealthCheck == dayCurrently)
           {
-            memberHealthCheckReminder.push(reminderHealth);
+            const user = await User.findById(reminderHealth.userId).select("username")
+            foundHealthCheckReminders.push({ user, healthCheckInfo: reminderHealth });
           }
       }
     }
@@ -430,11 +430,7 @@ const getAllRemindersOfMember = async (yearCurrently, monthCurrently, dayCurrent
       memberTreatmentReminder.push(reminders_member);
     }
   }
-
-  // console.log("memberTreatmentReminder",memberTreatmentReminder);
   const foundTreatmentReminders = [];
-  const foundHealthCheckReminders = [];
-
   for (let reminders of memberTreatmentReminder) {
     for (let reminder of reminders) {
       const startDate= new Date(reminder.startDate);
@@ -446,24 +442,6 @@ const getAllRemindersOfMember = async (yearCurrently, monthCurrently, dayCurrent
       const end_dateString = endDate.toISOString().split('T')[0]; 
       const [yearDb_End, monthDb_End, dayDb_End] = end_dateString.split('-').map(Number); 
 
-      // console.log("start_dateString",start_dateString);
-      if(yearCurrently >= yearDb_End){
-          console.log("adsgjasdhjhd13123123");
-      }
-      // console.log("yearDb_Start:",yearDb_Start);
-      // console.log("monthDb_Start:",monthDb_Start);
-      // console.log("dayDb_Start:",dayDb_Start);
-
-      
-      // console.log("yearDb_End:",yearDb_End);
-      // console.log("monthDb_End:",monthDb_End);
-      // console.log("dayDb_End:",dayDb_End);
-
-
-      // console.log("yearCurrently:",yearCurrently);
-      // console.log("monthCurrently:",monthCurrently);
-      // console.log("dayCurrently:",dayCurrently);
-
       if (yearDb_Start <= yearCurrently && 
         monthDb_Start <= monthCurrently && 
         dayDb_Start <= dayCurrently && 
@@ -471,20 +449,39 @@ const getAllRemindersOfMember = async (yearCurrently, monthCurrently, dayCurrent
         monthCurrently <= monthDb_End && 
         dayCurrently <= dayDb_End) 
         {
-        console.log("đâsdasdasdasd");
         const treatmentReminders = await TreatmentReminder.find({ reminderId: reminder._id });
         const user = await User.findById(reminder.userId).select("username")
         foundTreatmentReminders.push({ user, treatmentInfo: treatmentReminders });
       }
     }
   }
-  console.log("foundTreatmentReminders",foundTreatmentReminders);
-  // return foundTreatmentReminders
+  const reminders = {
+    foundTreatmentReminders: foundTreatmentReminders,
+    foundHealthCheckReminders: foundHealthCheckReminders
+  };  
+  return reminders
 };
 
 const getReminderFollowUserId = async (yearCurrently, monthCurrently, dayCurrently, userId) => {
 
   const userReminder = await Reminder.find({ userId: userId });
+  let healthCheck_members = await HealthCheck.find({ userId: userId });
+  const foundHealthCheckReminders = [];
+
+  if(healthCheck_members.length !=0){
+    for (let reminderHealth of healthCheck_members) {
+      const reExaminationDate= new Date(reminderHealth.reExaminationDate);
+      const getYearMonthDayHealthCheck = reExaminationDate.toISOString().split('T')[0]; 
+      const [yearHeathCheck, monthHealthCheck, dayHealthCheck] = getYearMonthDayHealthCheck.split('-').map(Number); 
+      if(yearHeathCheck == yearCurrently && 
+        monthHealthCheck == monthCurrently && 
+        dayHealthCheck == dayCurrently)
+        {
+          const user = await User.findById(reminderHealth.userId).select("username")
+          foundHealthCheckReminders.push({ user, healthCheckInfo: reminderHealth });
+        }
+    }
+  }
  
   const foundTreatmentReminders = [];
   const startDate= new Date(userReminder[0].startDate);
@@ -493,25 +490,25 @@ const getReminderFollowUserId = async (yearCurrently, monthCurrently, dayCurrent
   const startDateString = startDate.toISOString().split('T')[0]; 
   const endDateString = endDate.toISOString().split('T')[0]; 
 
-  const [yearDbStart, monthDbStart, dayDbStart] = startDateString.split('-').map(Number); 
-  const [yearDbEnd, monthDbEnd, dayDbEnd] = endDateString.split('-').map(Number); 
+  const [yearDb_Start, monthDb_Start, dayDb_Start] = startDateString.split('-').map(Number); 
+  const [yearDb_End, monthDb_End, dayDb_End] = endDateString.split('-').map(Number); 
 
-  // console.log("yearDbStart:",yearDbStart);
-  // console.log("monthDbStart:",monthDbStart);
-  // console.log("dayDbStart:",dayDbStart);
-
-  
-  // console.log("yearDbEnd:",yearDbEnd);
-  // console.log("monthDbEnd:",monthDbEnd);
-  // console.log("dayDbEnd:",dayDbEnd);
-
-
-  // if () {
-  //   const treatmentReminders = await TreatmentReminder.find({ reminderId: userReminder[0]._id });
-  //   const user = await User.findById(userReminder[0].userId).select("username")
-  //   foundTreatmentReminders.push({ user, treatmentInfo: treatmentReminders });
-  // }
-  return foundTreatmentReminders;
+  if (yearDb_Start <= yearCurrently && 
+    monthDb_Start <= monthCurrently && 
+    dayDb_Start <= dayCurrently && 
+    yearCurrently <= yearDb_End && 
+    monthCurrently <= monthDb_End && 
+    dayCurrently <= dayDb_End)  
+    {
+    const treatmentReminders = await TreatmentReminder.find({ reminderId: userReminder[0]._id });
+    const user = await User.findById(userReminder[0].userId).select("username")
+    foundTreatmentReminders.push({ user, treatmentInfo: treatmentReminders });
+  }
+  const reminders = {
+    foundTreatmentReminders: foundTreatmentReminders,
+    foundHealthCheckReminders: foundHealthCheckReminders
+  };  
+  return reminders
 }
 
 /// HEALTHCHECK
