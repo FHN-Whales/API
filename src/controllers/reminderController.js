@@ -68,12 +68,12 @@ exports.getTreatmentRemindersByUserId = async (req, res) => {
   }
 }
 
-exports.getRemindersTreatmentRemindersByYearMonthDay = async (req, res) => {
+exports.getRemindersByYearMonthDay = async (req, res) => {
   try {
     const date = req.params.date;
     const familyId = req.params.familyId;
     const userId = req.params.userId;
-    const getTreatmentReminderByUserId = await reminderRepository.getReminderTreatmentRemindersByYearMonthDay(date, familyId, userId);
+    const getTreatmentReminderByUserId = await reminderRepository.getRemindersByYearMonthDay(date, familyId, userId);
     return res.json(getTreatmentReminderByUserId)
   } catch (error) {
     console.log('error', error);

@@ -197,10 +197,13 @@ exports.createNewUser = async (data) => {
 
   try {
     const savedUser = await newUser.save();
+    const userId = savedUser._id;
 
     return {
       completed: true,
-      message: "User has been successfully registered"
+      message: "User has been successfully registered",
+      userId: userId  
+
     };
   } catch (error) {
     return {
