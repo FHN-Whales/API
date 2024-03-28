@@ -203,8 +203,8 @@ exports.createNewUser = async (data) => {
     return {
       completed: true,
       message: "User has been successfully registered",
-      userId: userId
-
+      userId: userId,
+      user: savedUser
     };
   } catch (error) {
     return {
