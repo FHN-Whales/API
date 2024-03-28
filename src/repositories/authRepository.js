@@ -203,7 +203,7 @@ exports.createNewUser = async (data) => {
     return {
       completed: true,
       message: "User has been successfully registered",
-      userId: userId  
+      userId: userId
 
     };
   } catch (error) {
@@ -364,6 +364,7 @@ exports.SignInRoleUser = async (Data) => {
         completed: true,
         userId: foundUser._id,
         familyId: familyId,
+        user: foundUser,
         message: "Login successful",
         deviceToken: deviceToken
       };
